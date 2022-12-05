@@ -1,0 +1,74 @@
+<div class="modal fade" id="modalAdvertisementForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold" name = "nametitle">Thêm quảng cáo</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/admin/advertisement/handle" method="Post">
+      <div class="modal-body mx-3">
+		    <label>Tên</label>
+		    <div class="form-group pass_show"> 
+                <input id="name" type="text"  name="name" class="form-control" > 
+            </div> 
+            <label>Nội dung</label>
+            <div class="form-group pass_show"> 
+                    <input id="content" type="text"  name="content" class="form-control" > 
+                </div> 
+
+                <label>Chọn ngày:</label>
+                <div class="form-group pass_show"> 
+                <input type="text" id = "range_date" name="daterange" value="01/01/2018 - 01/15/2018"  class="form-control" />
+            </div> 
+
+                <label>Loại</label>
+                <div class="form-group pass_show"> 
+                    <select name="type" id="type"  class="form-control">
+                    <option value="slider">slider</option>
+                    <option value="fixed">fixed</option>
+                    </select>
+                    </div>
+
+                    <label>Vị trí</label>
+                    <div class="form-group pass_show" > 
+                        <select name="locate" id="locate" class="form-control">
+                        <option value="head">head</option>
+                        <option value="body">body</option>
+                        </select>
+                        </div>
+
+		       <label>Trạng thái</label>
+               <div class="form-group pass_show" > 
+                <select name="state" id="state" class="form-control">
+                <option value="1">active</option>
+                <option value="0">inactive</option>
+                </select>
+                </div>
+
+            <label>Nhà cung cấp</label>
+		    <div class="form-group pass_show" > 
+                <input type="text"  name="product" class="form-control" > 
+            </div> 
+            <label>Chọn ảnh</label>
+            <div class="form-group pass_show"> 
+            <input type="file" name="file" id="file" >
+
+            </div> 
+
+            <input type="hidden" id = "form_submitted" name="form_submitted" value="0"/>
+            <input type="hidden" id = "idadvertisement" name="idadvertisement" value="0" />
+
+
+		
+
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+        <button type = "submit" name = "btnedit" class="btn btn-primary btn-sm">Xác nhận</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>

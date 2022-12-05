@@ -1,0 +1,48 @@
+<div class="modal fade" id="modalCardForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold" name = "nametitle">Thêm thẻ cào</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/admin/card/handle" method="Post">
+      <div class="modal-body mx-3">
+		    <label>Mã thẻ</label>
+		    <div class="form-group pass_show"> 
+                <input type="text"  name="code" class="form-control" > 
+            </div> 
+            <label>Số serial</label>
+            <div class="form-group pass_show"> 
+                    <input type="text"  name="serial" class="form-control" > 
+                </div> 
+
+            <label>Trạng thái</label>
+            <div class="form-group pass_show"> 
+            <select name="status" id="status" class="form-control">
+            <option value="0">Chưa dùng</option>
+            <option value="1">Đã dùng</option>
+            
+            </select>
+            </div>
+
+            <label>Nhà mạng</label>
+            <div class="form-group pass_show"> 
+            <select name="type" id="type" class="form-control">
+            <option value="viettel">Viettel</option>
+            <option value="vina">VinaPhone</option>
+            <option value="mobi">MobiPhone</option>
+            </select>
+            </div>
+            <input type="hidden" name="form_submitted" value="0"/>
+            <input type="hidden" name="idcard" value="0" />
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+        <button type = "submit" name = "btnedit" class="btn btn-primary btn-sm">Xác nhận</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <%- include('./../base/header.html');  -%>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+
+  <%- include('./../base/nav-bar.html');  -%>
+  <%- include('./../base/side-bar.html');  -%>
+
+
+
+
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Danh sách người dùng
+        
+      </h1>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+      <%- include('./../component/modalUser.html');  -%>
+    <div class="card mb-4">
+                            <div class="card-header">
+                            <button type="button" class="btn btn-primary" onclick ="addUser()">Thêm</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Tên</th>
+                                                <th>Avatar</th>
+                                                <th>Tài khoản</th>
+                                                <th>Điện thoại</th>
+                                                <th>Email</th>
+                                                <th>Điểm</th>
+                                                <th>Trạng thái</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <% for(var i=0;i<user.length;i++){ %>
+                                                
+                                            <tr>
+                                                <td><%= user[i].name %></td>
+                                                <td><img class="lazy" src="<%= user[i].avatar %>" alt="" style="width:100px; height:auto;"></td>
+                                                <td><%= user[i].username %></td>
+                                                <td><%= user[i].phone %></td>
+                                                <td><%= user[i].email %></td>
+                                                <td><%= user[i].point %></td>
+                                                <td><%= user[i].status %></td>
+                                                <td>
+                                                  <button onclick ="editUser('<%= user[i]._id %>','<%= user[i].name %>','<%= user[i].phone %>','<%= user[i].email %>','<%= user[i].point %>','<%= user[i].status%>','<%= user[i].username%>')"><i class="fa fa-pencil-alt " aria-hidden="true" ></i></button>
+                                                  <button onclick = "removeUser('<%= user[i]._id %>','<%= user[i].name %>','<%= user[i].phone %>','<%= user[i].email %>','<%= user[i].point %>','<%= user[i].status%>','<%= user[i].username%>')"><i class="fa fa-trash" aria-hidden="true" ></i></button>
+                                                </td>
+                                            </tr>
+                                          <% } %>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            </div>
+
+    </section>
+    <!-- /.content -->
+  </div>
+
+  <%- include('./../base/footer.html');  -%>
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+
+<script>
+$(document).ready(function() {
+    $('#dataTable').DataTable();
+  });
+
+</script>
+
+<script>
+  
+function removeUser(id,name,phone,email,point,status,username) {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 2);
+document.getElementsByName("point")[0].setAttribute("value", point);
+document.getElementsByName("point")[0].disabled = true;
+document.getElementsByName("name")[0].setAttribute("value", name);
+document.getElementsByName("name")[0].disabled = true;
+document.getElementsByName("username")[0].setAttribute("value", username);
+document.getElementsByName("username")[0].disabled = true;
+document.getElementsByName("password")[0].disabled = true;
+document.getElementsByName("iduser")[0].setAttribute("value",id);
+
+document.getElementsByName("status")[0].setAttribute("value", status);
+
+document.getElementsByName("status")[0].disabled = true;
+document.getElementsByName("phone")[0].setAttribute("value", phone);
+document.getElementsByName("phone")[0].disabled = true;
+document.getElementsByName("email")[0].setAttribute("value", email);
+document.getElementsByName("email")[0].disabled = true;
+document.getElementsByName("nametitle")[0].innerHTML = "Xóa người dùng";
+document.getElementsByName("btnedit")[0].innerHTML = "Xóa";
+$("#status").val(status).change();
+$('#modalUserForm').modal('show');
+
+}
+function editUser(id,name,phone,email,point,status,username) {
+
+    document.getElementsByName("form_submitted")[0].setAttribute("value", 1);
+    document.getElementsByName("point")[0].setAttribute("value", point);
+    document.getElementsByName("point")[0].disabled = false;
+    document.getElementsByName("name")[0].setAttribute("value", name);
+    document.getElementsByName("name")[0].disabled = false;
+    document.getElementsByName("username")[0].setAttribute("value", username);
+    document.getElementsByName("username")[0].disabled = true;
+    document.getElementsByName("password")[0].disabled = true;
+    document.getElementsByName("iduser")[0].setAttribute("value",id);
+
+    document.getElementsByName("status")[0].setAttribute("value", status);
+
+    document.getElementsByName("status")[0].disabled = false;
+    document.getElementsByName("phone")[0].setAttribute("value", phone);
+    document.getElementsByName("phone")[0].disabled = false;
+    document.getElementsByName("email")[0].setAttribute("value", email);
+    document.getElementsByName("email")[0].disabled = false;
+    document.getElementsByName("nametitle")[0].innerHTML = "Cập nhật người dùng";
+    document.getElementsByName("btnedit")[0].innerHTML = "Cập nhật";
+    $("#status").val(status).change();
+    $('#modalUserForm').modal('show');
+    
+    }
+function addUser() {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 0);
+document.getElementsByName("point")[0].setAttribute("value", '');
+document.getElementsByName("point")[0].disabled = false;
+document.getElementsByName("name")[0].setAttribute("value", '');
+document.getElementsByName("name")[0].disabled = false;
+document.getElementsByName("username")[0].setAttribute("value", "");
+document.getElementsByName("username")[0].disabled = false;
+document.getElementsByName("password")[0].disabled = false;
+document.getElementsByName("iduser")[0].setAttribute("value",'');
+document.getElementsByName("status")[0].setAttribute("value", 'active');
+document.getElementsByName("status")[0].disabled = false;
+document.getElementsByName("phone")[0].setAttribute("value", '');
+document.getElementsByName("phone")[0].disabled = false;
+document.getElementsByName("email")[0].setAttribute("value", '');
+document.getElementsByName("email")[0].disabled = false;
+document.getElementsByName("nametitle")[0].innerHTML = "Thêm người dùng";
+document.getElementsByName("btnedit")[0].innerHTML = "Xác nhận";
+$('#modalUserForm').modal('show');
+        
+        }
+</script>
+</body>
+</html>

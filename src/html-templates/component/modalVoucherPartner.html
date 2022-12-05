@@ -1,0 +1,61 @@
+<div class="modal fade" id="modalVoucherForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold" name = "nametitle">Thêm Voucher</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form >
+      <div class="modal-body mx-3">
+		    <label>Tên</label>
+		    <div class="form-group pass_show"> 
+                <input type="text" id="name" name="name" class="form-control" > 
+            </div> 
+            <label>Điểm</label>
+            <div class="form-group pass_show"> 
+                    <input type="number" id="value" name="value" class="form-control" > 
+                </div> 
+                <label>Nội dung</label>
+                <div class="form-group pass_show"> 
+                        <input type="text" id="content" name="content" class="form-control" > 
+                    </div> 
+		       <label>Số lượng</label>
+            <div class="form-group pass_show"> 
+                <input type="number" id="quantity" name="quantity" class="form-control" > 
+            </div> 
+            <label>Loại</label>
+            <div class="form-group pass_show"> 
+            <select name="type" id="type" class="form-control">
+            <option value="voucher">Voucher</option>
+            <option value="viettel">Card-viettel</option>
+            <option value="vina">Card-vina</option>
+            <option value="mobi">Card-mobi</option>
+            </select>
+            </div>
+            <label>Nhà cung cấp</label>
+		    <div class="form-group pass_show"> 
+                <input type="text" id="product" name="product" class="form-control" > 
+            </div> 
+            <label>Chọn ảnh</label>
+            <div class="form-group pass_show"> 
+            <input type="file" name="file" id="file" >
+
+            </div> 
+
+            <input type="hidden" id="form_submitted" name="form_submitted" value="0"/>
+            <input type="hidden"  id="idvoucher" name="idvoucher" value="0" />
+
+
+		
+
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+        <button id = "btnedit" name = "btnedit" class="btn btn-primary btn-sm">Xác nhận</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>

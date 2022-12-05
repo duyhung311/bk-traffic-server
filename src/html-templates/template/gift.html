@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+  <%- include('./../base/header.html');  -%>
+
+<link rel="stylesheet" type="text/css" href="https://cdn-geoweb.s3.amazonaws.com/esri-leaflet-geocoder/0.0.1-beta.5/esri-leaflet-geocoder.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+  
+
+
+
+
+  
+  
+  <style>
+  #sethPhatMap {
+
+    height: 400px; 
+  }
+</style>
+
+<body >
+  
+<div class="wrapper">
+
+  <%- include('./../base/nav-bar.html');  -%>
+  <%- include('./../base/side-bar.html');  -%>
+  
+
+
+
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Quà tặng
+        
+      </h1>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+
+      <%- include('./../component/modalGift.html');  -%>
+      <div class="card mb-4">
+        <div id="sethPhatMap">
+        
+        </div>
+      </div>
+    <div class="card mb-4">
+                            <div class="card-header">
+                            <button type="button" class="btn btn-primary" onclick ="addGift('','')">Thêm</button>
+                            </div>
+                            <div class="card-body">
+
+                  
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Tọa độ</th>
+                                                <th>Điểm</th>
+                                                <th>Số lượng</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <% for(var i=0;i<gift.length;i++){ %>
+                                                
+                                            <tr>
+                                                <td><%= i+1 %></td>
+                                                <td>(<%= gift[i].longitude %>,<%= gift[i].latitude %>)</td>
+
+                                                <td><%= gift[i].point %></td>
+                                                <td><%= gift[i].amount %></td>
+                                                <td>
+                                                  <button onclick ="editGift('<%= gift[i]._id %>','<%= gift[i].longitude %>','<%= gift[i].latitude %>','<%= gift[i].point %>','<%= gift[i].amount %>')"><i class="fa fa-pencil-alt " aria-hidden="true" ></i></button>
+                                                  <button onclick = "removeGift('<%= gift[i]._id %>','<%= gift[i].longitude %>','<%= gift[i].latitude %>','<%= gift[i].point %>','<%= gift[i].amount %>')"><i class="fa fa-trash" aria-hidden="true" ></i></button>
+                                                </td>
+                                            </tr>
+                                          <% } %>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            </div>
+
+    </section>
+    <!-- /.content -->
+  </div>
+
+  <%- include('./../base/footer.html');  -%>
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+
+<script>
+
+
+$(document).ready(function() {
+    $('#dataTable').DataTable();
+  });
+</script>
+<script>
+function removeGift(id,longitude,latitude,point,amount) {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 2);
+document.getElementsByName("longitude")[0].setAttribute("value", longitude);
+    document.getElementsByName("longitude")[0].disabled = true;
+    document.getElementsByName("latitude")[0].setAttribute("value", latitude);
+    document.getElementsByName("latitude")[0].disabled = true;
+    document.getElementsByName("point")[0].setAttribute("value",point);
+    document.getElementsByName("point")[0].disabled = true;
+
+    document.getElementsByName("idgift")[0].setAttribute("value",id);
+
+    document.getElementsByName("amount")[0].setAttribute("value",amount);
+    document.getElementsByName("amount")[0].disabled = true;
+document.getElementsByName("nametitle")[0].innerHTML = "Xóa";
+document.getElementsByName("btnedit")[0].innerHTML = "Xóa";
+$('#modalGiftForm').modal('show');
+
+}
+function editGift(id,longitude,latitude,point,amount) {
+    document.getElementsByName("form_submitted")[0].setAttribute("value", 1);
+    document.getElementsByName("longitude")[0].setAttribute("value", longitude);
+    document.getElementsByName("longitude")[0].disabled = false;
+    document.getElementsByName("latitude")[0].setAttribute("value", latitude);
+    document.getElementsByName("latitude")[0].disabled = false;
+    document.getElementsByName("point")[0].setAttribute("value",point);
+    document.getElementsByName("point")[0].disabled = false;
+
+    document.getElementsByName("idgift")[0].setAttribute("value",id);
+
+    document.getElementsByName("amount")[0].setAttribute("value",amount);
+    document.getElementsByName("amount")[0].disabled = false;
+
+    document.getElementsByName("nametitle")[0].innerHTML = "Cập nhật";
+    document.getElementsByName("btnedit")[0].innerHTML = "Cập nhật";
+    $('#modalGiftForm').modal('show');
+    
+    }
+function addGift(longitude,latitude) {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 0);
+document.getElementsByName("longitude")[0].setAttribute("value", longitude);
+document.getElementsByName("longitude")[0].disabled = false;
+document.getElementsByName("latitude")[0].setAttribute("value", latitude);
+document.getElementsByName("latitude")[0].disabled = false;
+document.getElementsByName("point")[0].setAttribute("value", "");
+document.getElementsByName("point")[0].disabled = false;
+
+document.getElementsByName("idgift")[0].setAttribute("value",'');
+
+document.getElementsByName("amount")[0].setAttribute("value", '');
+document.getElementsByName("amount")[0].disabled = false;
+
+document.getElementsByName("nametitle")[0].innerHTML = "Thêm ";
+document.getElementsByName("btnedit")[0].innerHTML = "Xác nhận";
+$('#modalGiftForm').modal('show');
+        
+        }
+
+
+
+  var mapObj = null;
+	var defaultCoord = [10.7743, 106.6669]; // coord mặc định, 9 giữa HCMC
+	var zoomLevel = 13;
+	var mapConfig = {
+		attributionControl: false, // để ko hiện watermark nữa
+		center: defaultCoord, // vị trí map mặc định hiện tại
+		zoom: zoomLevel, // level zoom
+	};
+	
+	window.onload = function() {
+		// init map
+		mapObj = L.map('sethPhatMap', {attributionControl: false}).setView(defaultCoord, zoomLevel);
+		
+		// add tile để map có thể hoạt động, xài free từ OSM
+		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+			attribution: '© <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mapObj);
+    function onMapClick(e) {
+    addGift(e.latlng.lng,e.latlng.lat)
+}
+
+    mapObj.on('click', onMapClick);
+
+    var searchControl = new L.esri.Controls.Geosearch().addTo(mapObj);
+
+var results = new L.LayerGroup().addTo(mapObj);
+
+searchControl.on('results', function(data){
+  results.clearLayers();
+  for (var i = data.results.length - 1; i >= 0; i--) {
+    results.addLayer(L.marker(data.results[i].latlng));
+  }
+})
+;
+<% for(var i=0;i<gift.length;i++){ %>
+  L.marker([<%= gift[i].latitude %>,<%= gift[i].longitude %>]).addTo(mapObj);
+  <% } %>
+  
+  };
+  
+
+</script>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+crossorigin=""></script>
+<script src="https://cdn-geoweb.s3.amazonaws.com/esri-leaflet/0.0.1-beta.5/esri-leaflet.js"></script>
+<script src="https://cdn-geoweb.s3.amazonaws.com/esri-leaflet-geocoder/0.0.1-beta.5/esri-leaflet-geocoder.js"></script>
+</body>
+</html>

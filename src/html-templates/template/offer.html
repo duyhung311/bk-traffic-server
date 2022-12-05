@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <%- include('./../base/header.html');  -%>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+
+  <%- include('./../base/nav-bar.html');  -%>
+  <%- include('./../base/side-bar.html');  -%>
+
+
+
+
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+       Thông tin Offer
+        
+      </h1>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+    <div class="card mb-4">
+                            <div class="card-header">
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Voucher</th>
+                                                <th>Người dùng</th>
+                                                <th>Code</th>
+                                                <th>Trạng thái</th>
+             
+
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <% for(var i=0;i<offer.length;i++){ %>
+                                                
+                                            <tr>
+                                                <td><%= offer[i].voucher_id.name %></td>
+                                                <td><%= offer[i].customer_id.name %></td>
+                                                <td><%= offer[i].code %></td>
+                                                <td><%= offer[i].status %></td>
+          
+                                                <td>
+                                                </td>
+                                            </tr>
+                                          <% } %>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            </div>
+
+    </section>
+    <!-- /.content -->
+  </div>
+
+  <%- include('./../base/footer.html');  -%>
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+
+<script>
+$(document).ready(function() {
+    $('#dataTable').DataTable();
+    document.getElementById("nameuser").innerHTML=getCookie("name");
+
+    document.getElementById("imguser").src = getCookie("avatar").replace(/%2F/g, "/").replace(/%3A/g, ":");
+  });
+
+  $('a.nav-link').each(function() {
+      var href = $(this).attr('href');
+      var win_href = window.location.pathname;
+      if (href == win_href) $(this).addClass('active');
+    })
+</script>
+<script>
+function removeVoucher(id,name,point,content,product,quantity) {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 2);
+document.getElementsByName("value")[0].setAttribute("value", point);
+    document.getElementsByName("value")[0].disabled = true;
+    document.getElementsByName("name")[0].setAttribute("value", name);
+    document.getElementsByName("name")[0].disabled = true;
+    document.getElementsByName("content")[0].setAttribute("value",content);
+    document.getElementsByName("content")[0].disabled = true;
+
+    document.getElementsByName("idvoucher")[0].setAttribute("value",id);
+
+    document.getElementsByName("product")[0].setAttribute("value",product);
+    document.getElementsByName("product")[0].disabled = true;
+    document.getElementsByName("quantity")[0].setAttribute("value", quantity);
+    document.getElementsByName("quantity")[0].disabled = true;
+document.getElementsByName("nametitle")[0].innerHTML = "Xóa Voucher";
+document.getElementsByName("btnedit")[0].innerHTML = "Xóa";
+$('#modalVoucherForm').modal('show');
+
+}
+function editVoucher(id,name,point,content,product,quantity) {
+
+    document.getElementsByName("form_submitted")[0].setAttribute("value", 1);
+    document.getElementsByName("value")[0].setAttribute("value", point);
+    document.getElementsByName("value")[0].disabled = false;
+    document.getElementsByName("name")[0].setAttribute("value", name);
+    document.getElementsByName("name")[0].disabled = false;
+    document.getElementsByName("content")[0].setAttribute("value",content);
+    document.getElementsByName("content")[0].disabled = false;
+
+    document.getElementsByName("idvoucher")[0].setAttribute("value",id);
+
+    document.getElementsByName("product")[0].setAttribute("value",product);
+    document.getElementsByName("product")[0].disabled = true;
+    document.getElementsByName("quantity")[0].setAttribute("value", quantity);
+    document.getElementsByName("quantity")[0].disabled = false;
+    document.getElementsByName("nametitle")[0].innerHTML = "Cập nhật Voucher";
+    document.getElementsByName("btnedit")[0].innerHTML = "Cập nhật";
+    $('#modalVoucherForm').modal('show');
+    
+    }
+function addVoucher() {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 0);
+document.getElementsByName("value")[0].setAttribute("value", '');
+document.getElementsByName("value")[0].disabled = false;
+document.getElementsByName("name")[0].setAttribute("value", '');
+document.getElementsByName("name")[0].disabled = false;
+document.getElementsByName("content")[0].setAttribute("value", "");
+document.getElementsByName("content")[0].disabled = false;
+
+document.getElementsByName("idvoucher")[0].setAttribute("value",'');
+
+document.getElementsByName("product")[0].setAttribute("value", '');
+document.getElementsByName("product")[0].disabled = false;
+document.getElementsByName("quantity")[0].setAttribute("value", '');
+document.getElementsByName("quantity")[0].disabled = false;
+document.getElementsByName("nametitle")[0].innerHTML = "Thêm Voucher";
+document.getElementsByName("btnedit")[0].innerHTML = "Xác nhận";
+$('#modalVoucherForm').modal('show');
+        
+        }
+</script>
+</body>
+</html>

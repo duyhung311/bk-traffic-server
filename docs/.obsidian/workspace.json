@@ -1,0 +1,142 @@
+{
+  "main": {
+    "id": "6ff1eaddb24b2645",
+    "type": "split",
+    "children": [
+      {
+        "id": "03a5c24708edc11a",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f11f710f220c6310",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "5145e9c8f92ff7af",
+    "type": "split",
+    "children": [
+      {
+        "id": "6bc09d8308a4f3d2",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5204f29dec1045d0",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "7a3311ac3c3c5f66",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "4044f33f19522970",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "c7c71235652e57d1",
+    "type": "split",
+    "children": [
+      {
+        "id": "4d4f227a097ad287",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "92afd4d21ca5d7c5",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "df1ddf9329d3c36c",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "a168a70f96e5d8c7",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "fc89ad240922d501",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "f11f710f220c6310",
+  "lastOpenFiles": [
+    "full-docs.md",
+    "part-8-redis.md",
+    "part-2-installation.md",
+    "part-3-response-definition.md",
+    "part-4-database.md",
+    "part-5-api-server-structure.md",
+    "part-7-dolby-api.md",
+    "part-6-updater-server-structure.md"
+  ]
+}

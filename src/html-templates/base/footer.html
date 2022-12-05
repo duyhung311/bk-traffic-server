@@ -1,0 +1,119 @@
+<footer class="main-footer">
+  <strong>Copyright &copy; 2014-2019 <a href="http://adminlte.io">AdminLTE.io</a>.</strong>
+  All rights reserved.
+  <div class="float-right d-none d-sm-inline-block">
+    <b>Version</b> 3.0.5
+  </div>
+</footer>
+<script src="plugins/jquery/jquery.min.js"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="plugins/jquery-ui/jquery-ui.min.js"></script>
+<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+<script>
+  $.widget.bridge('uibutton', $.ui.button)
+</script>
+<!-- Bootstrap 4 -->
+<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- ChartJS -->
+<script src="plugins/chart.js/Chart.min.js"></script>
+<!-- Sparkline -->
+<script src="plugins/sparklines/sparkline.js"></script>
+<!-- JQVMap -->
+<script src="plugins/jqvmap/jquery.vmap.min.js"></script>
+<script src="plugins/jqvmap/maps/jquery.vmap.usa.js"></script>
+<!-- jQuery Knob Chart -->
+<script src="plugins/jquery-knob/jquery.knob.min.js"></script>
+<!-- daterangepicker -->
+<script src="plugins/moment/moment.min.js"></script>
+<script src="plugins/daterangepicker/daterangepicker.js"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
+<!-- Summernote -->
+<script src="plugins/summernote/summernote-bs4.min.js"></script>
+<!-- overlayScrollbars -->
+<script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+<!-- AdminLTE App -->
+<script src="dist/js/adminlte.js"></script>
+<!-- AdminLTE dashboard demo (This is only for demo purposes) -->
+<script src="dist/js/pages/dashboard.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="dist/js/demo.js"></script>
+<script src="js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://res.cloudinary.com/dxfq3iotg/raw/upload/v1581152197/smartwizard/jquery.smartWizard.min.js"></script>
+<script>
+  function getCookie(name) {
+    var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : null;
+}
+
+$(document).ready(function() {
+
+    document.getElementById("nameuser").innerHTML=getCookie("name");
+    document.getElementById("imguser").src = getCookie("avatar").replace(/%2F/g, "/").replace(/%3A/g, ":");
+  });
+  $('a.nav-link').each(function() {
+    var href = $(this).attr('href');
+    var win_href = window.location.pathname;
+    if (href == win_href) 
+    {
+      $(this).addClass('active');
+      $(this).parent().parent().parent().addClass('menu-open');
+      $(this).parent().parent().parent().children('a').addClass('active')
+
+    }
+  })
+  $('#feedback').click(function( event ) {
+    url = window.location.origin+"/admin/feedback"
+    $.ajax({
+          url: url,
+          type: 'GET',
+          contentType: 'application/x-www-form-urlencoded',
+          headers: {
+                    "Authorization": "Bearer " + getCookie('token')
+                 },
+          
+          async: true,
+          success: function (response) {
+            
+        }   
+            });
+});
+  // function navigation(event){
+  //   url="url = window.location.origin+"/admin/feedback
+  //   // if (type==1){
+  //   //     url = window.location.origin+"/admin/index"
+  //   // }
+  //   // else if(type==2){
+  //   //   url = window.location.origin+"/admin/customer"
+  //   // }
+  //   // else if(type==3){
+  //   //   url = window.location.origin+"/admin/voucher"
+  //   // }
+  //   // else if(type==4){
+  //   //   url = window.location.origin+"/admin/advertisement"
+  //   // }
+  //   // else if(type==5){
+  //   //   url = window.location.origin+"/admin/offer"
+  //   // }
+  //   // else if(type==6){
+  //   //   url = window.location.origin+"/admin/deal"
+  //   // }
+  //   // else if(type==7){
+  //   //   url = window.location.origin+"/admin/feedback"
+  //   // }
+    
+  //   $.ajax({
+  //         url: url,
+  //         type: 'GET',
+  //         contentType: 'application/x-www-form-urlencoded',
+  //         headers: {
+  //                   "Authorization": "Bearer " + getCookie('token')
+  //                },
+          
+  //         async: true,
+  //         success: function (response) {
+  //           document.write(response)
+  //       }   
+  //           });
+  //         }
+</script>
