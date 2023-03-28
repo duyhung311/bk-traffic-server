@@ -8,64 +8,62 @@ const periodModule = require('../../period');
 const { ObjectId } = require('../../../core/database');
 const Logger = require('../../../core/logger');
 const { default: axios } = require('axios');
-const { response } = require('express');
+const fs = require('fs');
+const { ExceptionHandler } = require('winston');
+const { MAX_CAPACITY } = require('../../../state');
+const { validate } = require('joi/lib/types/lazy');
 
+//const wav = require('node-wav');
+
+const MAX_RETRY = 5;
 async function postSpeechReport(req, res, next) {
   try {
     const allowFields = ['segments', 'speech_record_id'];
     const data = _.pick(req.body, allowFields);
-    const errors = {};
-    console.log("+++++++++++++++++++++++++++++++")
-    console.log(data.segments)
     const segments = JSON.parse(JSON.stringify(data)).segments;
-    console.log(segments)
-    console.log("-------------------------------")
-
     const speechRecordId = data.speech_record_id;
-    const dolbyUrl = `dlb://enhanced-${speechRecordId}`;
-
-    // Validation
-    if (segments.length > 5) {
-      errors.segments = Reason.invalid;
-    }
-    if (!_.isEmpty(errors)) {
-      const response = new CodeError(ErrorType.badRequest);
-      for (const [key, val] of Object.entries(errors)) {
-        response.addError(key, val);
-      }
-      response.send(res);
-      return;
-    }
-    console.log("No errors in validation")
-    let { user } = req;
-    if (!user) {
-      user = await UserModel.Service.User.findOne({
-        username: state.admin.username,
-      });
-      console.log(user)
-    }
-
-    const currentPeriod = await periodModule.Service.getCurrentPeriod();
-    const reportData = {
-      user: user._id,
-      segments: [...new Set(segments.flat())],
-      period_id: currentPeriod._id,
-      source: 'user',
-    };
-    const { error } = Service.SpeechReport.validate(reportData);
-    if (error) {
-      console.log("Error in validating SpeechReport ", error)
-      throw error;
-    }
+    const dolbyUrl = `dlb://enhanced${speechRecordId}`;
+    let {isError, reportData}= await validateUserRequest(req, segments, res)
+    if (!isError) return;
+    // Validation  |  separate to new function validateUserRequest()
+    // if (segments.length > 5) {
+    //   errors.segments = Reason.invalid;
+    // }
+    // if (!_.isEmpty(errors)) {
+    //   const response = new CodeError(ErrorType.badRequest);
+    //   for (const [key, val] of Object.entries(errors)) {
+    //     response.addError(key, val);
+    //   }
+    //   response.send(res);
+    //   return;
+    // }
+    // let { user } = req;
+    // if (!user) {
+    //   user = await UserModel.Service.User.findOne({
+    //     username: state.admin.username,
+    //   });
+    // }
+    // const currentPeriod = await periodModule.Service.getCurrentPeriod();
+    // const reportData = {
+    //   user: user._id,
+    //   segments: [...new Set(segments.flat())],
+    //   period_id: currentPeriod._id,
+    //   source: 'user',
+    // };
+    // const { error } = Service.SpeechReport.validate(reportData);
+    // if (error) {
+    //   throw error;
+    // }
 
 
-    // Finish validate user speech report
-    ResponseFactory.success().send(res);
+    // // Finish validate user speech report
+    // ResponseFactory.success().send(res);
 
     // Enhance noise cancelling
     let enhancedBuffer = null;
     try {
       enhancedBuffer = await Service.SpeechRecord.getEnhancedSpeechRecord(dolbyUrl, speechRecordId);
+      console.log('enhancedBuffer.length: ', enhancedBuffer==null);
     } catch (e) {
       Logger.error('[Enhance Audio]', e);
     }
@@ -87,6 +85,7 @@ async function postSpeechReport(req, res, next) {
     Logger.info("Inserted SpeechReport to MongoDB")
 
   } catch (error) {
+    Logger.error(error)
     next(error);
   }
 }
@@ -153,67 +152,214 @@ async function getSpeechRecordScript(req, res, next) {
 
 async function processSpeechReportMobile(req, res, next) {
   try {
-    const segments = req.body.segments
-    const speech_record_id = req.body.speech_record_id
-    const audioFile = req.file.buffer
+    let apiKey = process.env.DOLBY_API_KEY;
+    Logger.info('Received Request from Mobile')
+    let formData = new FormData();
+    const allowFields = ['speech_record_id', 'file', 'segments'];
+    const data = _.pick(req.body, allowFields);
+    const segments = JSON.parse(JSON.stringify(data)).segments;
+    const speech_record_id = data.speech_record_id
+    var dataFile = data.file;
+
+    let {isError, reportData}= await validateUserRequest(req, segments, res);
+    console.log(isError);
+    if (!isError) return;
+    console.log('reportData2', reportData);
+
+    Logger.info('Validated');
+    let decodedAudioFile = Buffer.from(dataFile, 'base64');
+    fs.writeFileSync('./audio.wav', decodedAudioFile);
+
+    const audioFile = fs.readFileSync('./audio.wav');
+    console.log("length: ", audioFile.length);
+
     // create input bucket
-    const inputBucketUrl = async () => axios
+    const inputBucketUrl = await axios
     .post(
       `https://api.dolby.com/media/input`,
       {
-        url: speech_record_id,
-        headers: {'x-api-key': process.env.DOLBY_API_KEY},
-      }
-     )
-     .then((response) => {
-      console.log(response)
-      return response.data.url
-     }, (error) => {
-      console.log(error)
-     })
-    // send audio to that input bucket
-    const status = async () => axios
-    .put(
-      inputBucketUrl,
+        url: "dlb://" + speech_record_id
+      },
       {
-        data: audioFile,
-        headers: {'Content-Type': 'audio/mpeg'},
+        headers: {'x-api-key': apiKey, 
+                  'content-type': 'application/json'}
       }
-     )
-     .then((response) => {
-      console.log(response)
-      return response.status
-     }, (error) => {
-      console.log(error)
-     })
-    // start enhancing
-    const responseStatus = ""
-    if (status == 200) {
-      const inputUrl = 'dlb://${speech_ecord_id}'
-      const outputUrl = 'dlb://enahnced${speech_ecord_id}'
-      const isSuccess = () => axios
-      .post(
-        `https://api.dolby.com/media/enhance`,
-        {
-          content: {
-            type: "voice-recording"
+     );
+    if (inputBucketUrl !== null) {
+      formData.append('file', audioFile);
+      const putAudioStatus = await axios
+        .put(
+          inputBucketUrl.data.url,
+          audioFile,
+          {
+            headers: {
+              "Content-Type": "audio/wave",
+            }
+          }
+        )
+        .then((response) => {
+          return response.status;
+        }, (error) => {
+          console.log(error);
+        })
+      if (putAudioStatus === 200) {
+        const inputUrl = `dlb://${speech_record_id}`
+        const outputUrl = `dlb://enhanced${speech_record_id}`
+        let jobId = await axios.post(
+          `https://api.dolby.com/media/enhance`,
+          {
+            content: {
+              type: "voice_recording"
+            },
+            input: inputUrl,
+            output: outputUrl,
           },
-          input: inputUrl,
-          output: outputUrl,
-          headers: {'x-api-key': process.env.DOLBY_API_KEY, 'content-type' : 'application/json'},
+          {
+            headers: {'x-api-key': process.env.DOLBY_API_KEY, 'content-type' : 'application/json'},
+          }
+        ).then((reponse) => {
+            return reponse.data.job_id;
+        }, (error) => {
+            console.log(error);
+        })
+        console.log('success', jobId);
+        if (jobId !== null) {
+          console.log("do here");
+          let statusEnhanced =  await getStatusEnhanced(jobId);
+          Logger.info(statusEnhanced);
+          if (statusEnhanced === 'Success') {
+            // downloading enhanced audio
+            console.log('Success status')
+            let downloadUrl = await getDownloadUrl(data.speech_record_id, apiKey);
+            console.log("get download url success")
+            let enhancedBuffer = await Service.SpeechRecord.downloadEnhancedAudio(downloadUrl, data.speech_record_id);
+            Logger.info("Success enhancing, pls start saving it do db");
+            console.log('repportData: ', reportData);  
+            reportData.speech_record = data.speech_record_id;
+            Service.SpeechRecord.insertOne({
+              _id: data.speech_record_id,
+              data: decodedAudioFile,
+              length: decodedAudioFile.size,
+              contentType: 'audio/x-wav', // ?
+              encoding: '16bit', //    ?
+              dataEnhanced: enhancedBuffer,
+            });
+            Logger.info("Inserted SpeechRecord to MongoDB")
+            
+        
+            // Insert speech report
+            await Service.SpeechReport.insertOne(reportData);
+            Logger.info("Inserted SpeechReport to MongoDB")
+          }
         }
-      ).then((reponse) => {
-        responseStatus = reponse.data.status
-      }, (error) => {
-        responseStatus = reponse.data.status
-
-      })
+      }
     }
+    // start enhancing
+    // TODO: after status = success -> start download the enhanced audio
+
   } catch (error) {
+    console.log("error4: ", error);
     console.log("FAILED TO ERROR")
   }
+}
 
+async function validateUserRequest(req, segments, res) {
+  let errors = {};
+  let isError = false;
+  if (segments.length > 5) {
+    errors.segments = Reason.invalid;
+    isError = true;
+    Logger.error('Segments error >=5 with segment size: ');
+  }
+  if (!_.isEmpty(errors)) {
+    const response = new CodeError(ErrorType.badRequest);
+    Logger.error("Errors occured!")
+    for (const [key, val] of Object.entries(errors)) {
+      response.addError(key, val);
+    }
 
+    response.send(res);
+    return {'isError' : _.isEmpty(errors), 'reportData' : null};
+  }
+  let { user } = req;
+  if (!user) {
+    user = await UserModel.Service.User.findOne({
+      username: state.admin.username,
+    });
+    Logger.error('Cannot find user');
+  }
+
+  const currentPeriod = await periodModule.Service.getCurrentPeriod();
+  const reportData = {
+    user: user._id,
+    segments: [...new Set(segments.flat())],
+    period_id: currentPeriod._id,
+    source: 'user',
+    speech_record: "-1",
+  };
+  const { error } = Service.SpeechReport.validate(reportData);
+  console.log("validate reportData");
+  if (error) {
+    Logger.warn('Error!!!')
+    throw error;
+  }
+
+  // Finish validate user speech report
+  ResponseFactory.success().send(res);
+  Logger.info('Validate no errors');
+  console.log('reportData1', reportData);
+  return {'isError' : _.isEmpty(errors), 'reportData' : reportData};
+}
+
+async function getStatusEnhanced(jobId) {
+  let retry = 0;
+
+  const getEnhanceStatus = async () => axios
+    .get(
+      `https://api.dolby.com/media/enhance?job_id=${jobId}`,
+      {
+        method: 'GET',
+        headers: {
+          'x-api-key': process.env.DOLBY_API_KEY,
+        }
+      },
+    )
+    .then((response) => {
+      if (response.data.status !== 'Success') {
+        Logger.warn("Status failed: %s", response.data.status);
+        throw error;
+      }
+      return response.data.status;
+    })
+    .catch((error) => {
+      if (retry >= MAX_RETRY) return 'Failed';
+      //Logger.warn('[Enhance Audio Service]Retry getting status.');
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          retry += 1;
+          resolve(getEnhanceStatus());
+        }, 2000);
+      });
+    });
+
+  return getEnhanceStatus();
+}
+
+async function getDownloadUrl(speechRecordId, apiKey) {
+  return await axios.post(
+    `https://api.dolby.com/media/output`,
+    {
+      "url":`dlb://enhanced${speechRecordId}`
+    },
+    {
+      headers: {'x-api-key': apiKey, 
+                'content-type': 'application/json'}
+    }
+  ).then((response) => {
+    console.log(response);
+    return response.data.url;
+  });
+  
 }
 
 module.exports = {
@@ -223,4 +369,4 @@ module.exports = {
     processSpeechReportMobile,
   },
   getSpeechRecordScript,
-};
+}

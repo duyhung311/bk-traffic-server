@@ -7,6 +7,7 @@ const Database = require('../../../core/database');
 const Logger = require('../../../core/logger');
 const Model = require('../models');
 const { sleep, arrayBufferToBuffer } = require('../../../core/utils');
+const MAX_RETRY = 5;
 
 function validate(data) {
   const allowFields = ['script', 'length'];
@@ -43,9 +44,13 @@ async function updateOne(query, update) {
   }
   return Database.updateOne(Model.SpeechRecord.Name, query, update);
 }
-
+/*
+  According to Dobly API document, the API call in getEnhancedSpeechRecord() is deprecated. 
+  Therefore, an up-to-date API call in downloadEnhancedAudio() is implemented
+  Although being deprecated, the code will not be removed because it is still usable.
+*/
 async function getEnhancedSpeechRecord(url, speechRecordId) {
-  const MAX_RETRY = 5;
+
   let retry = 0;
   const filename = `tmp/${speechRecordId}.wav`;
 
@@ -63,7 +68,6 @@ async function getEnhancedSpeechRecord(url, speechRecordId) {
       Logger.info('[Enhance Audio Service] Enhancing speech record successfully');
 
       const fileContents = fs.readFileSync(filename);
-      Logger.info("[getEnhanceAudio] %s", fileContents.length)
       fsExtra.removeSync(filename);
       return arrayBufferToBuffer(fileContents.buffer);
     })
@@ -82,9 +86,38 @@ async function getEnhancedSpeechRecord(url, speechRecordId) {
   return getEnhanceAudio();
 }
 
+async function downloadEnhancedAudio(downloadUrl, speechRecordId) {
+  let retry = 0;
+  const filename = `tmp/${speechRecordId}.wav`;
+
+  const getEnhanceAudio = async () => axios.get(downloadUrl, {responseType: 'stream'})
+  .then((response) => response.data.pipe(fs.createWriteStream(filename)))
+    .then(() => sleep(2000))
+    .then(() => {
+      Logger.info('[Enhance Audio Service] Enhancing speech record successfully');
+      const fileContents = fs.readFileSync(filename);
+      fsExtra.removeSync(filename);
+      return arrayBufferToBuffer(fileContents.buffer);
+    })
+    .catch((error) => {
+      if (retry >= MAX_RETRY) throw error;
+      //Logger.warn('[Enhance Audio Service] Retry enhancing speech record %s', speechRecordId);
+      Logger.warn('[Enhance Audio Service] Retry enhancing speech record at %s', downloadUrl);
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          retry += 1;
+          resolve(getEnhanceAudio());
+        }, 2000);
+      });
+    });
+    
+    return getEnhanceAudio();
+}
+
 module.exports = {
   validate,
   insertOne,
   updateOne,
   getEnhancedSpeechRecord,
+  downloadEnhancedAudio,
 };
