@@ -157,10 +157,11 @@ async function processSpeechReportMobile(req, res, next) {
     let formData = new FormData();
     const allowFields = ['speech_record_id', 'file', 'segments'];
     const data = _.pick(req.body, allowFields);
-    const segments = JSON.parse(JSON.stringify(data)).segments;
-    const speech_record_id = data.speech_record_id
+    const segments = data.segments;
+    Logger.info(data.speech_record_id)
+    const speech_record_id = String(data.speech_record_id).substring(1, data.speech_record_id.length-1);
     var dataFile = data.file;
-
+    Logger.info(segments);
     let {isError, reportData}= await validateUserRequest(req, segments, res);
     console.log(isError);
     if (!isError) return;
@@ -172,19 +173,19 @@ async function processSpeechReportMobile(req, res, next) {
 
     const audioFile = fs.readFileSync('./audio.wav');
     console.log("length: ", audioFile.length);
-
+    Logger.info(`dlb://${speech_record_id}`);
     // create input bucket
     const inputBucketUrl = await axios
-    .post(
-      `https://api.dolby.com/media/input`,
-      {
-        url: "dlb://" + speech_record_id
-      },
-      {
-        headers: {'x-api-key': apiKey, 
-                  'content-type': 'application/json'}
-      }
-     );
+      .post(
+        `https://api.dolby.com/media/input`,
+        {
+          url: `dlb://${speech_record_id}`
+        },
+        {
+          headers: {'x-api-key': apiKey, 
+                    'content-type': 'application/json'}
+        }
+      );
     if (inputBucketUrl !== null) {
       formData.append('file', audioFile);
       const putAudioStatus = await axios
@@ -230,23 +231,23 @@ async function processSpeechReportMobile(req, res, next) {
           if (statusEnhanced === 'Success') {
             // downloading enhanced audio
             console.log('Success status')
-            let downloadUrl = await getDownloadUrl(data.speech_record_id, apiKey);
+            let downloadUrl = await getDownloadUrl(speech_record_id, apiKey);
             console.log("get download url success")
-            let enhancedBuffer = await Service.SpeechRecord.downloadEnhancedAudio(downloadUrl, data.speech_record_id);
+            let enhancedBuffer = await Service.SpeechRecord.downloadEnhancedAudio(downloadUrl, speech_record_id);
             Logger.info("Success enhancing, pls start saving it do db");
             console.log('repportData: ', reportData);  
-            reportData.speech_record = data.speech_record_id;
+            reportData.speech_record = speech_record_id;
             Service.SpeechRecord.insertOne({
-              _id: data.speech_record_id,
+              _id: speech_record_id,
               data: decodedAudioFile,
               length: decodedAudioFile.size,
-              contentType: 'audio/x-wav', // ?
-              encoding: '16bit', //    ?
+              contentType: 'audio/x-wav',
+              encoding: '16bit',
               dataEnhanced: enhancedBuffer,
             });
             Logger.info("Inserted SpeechRecord to MongoDB")
             
-        
+            Logger.info("reportData: ", reportData);
             // Insert speech report
             await Service.SpeechReport.insertOne(reportData);
             Logger.info("Inserted SpeechReport to MongoDB")
@@ -254,9 +255,6 @@ async function processSpeechReportMobile(req, res, next) {
         }
       }
     }
-    // start enhancing
-    // TODO: after status = success -> start download the enhanced audio
-
   } catch (error) {
     console.log("error4: ", error);
     console.log("FAILED TO ERROR")
@@ -266,10 +264,15 @@ async function processSpeechReportMobile(req, res, next) {
 async function validateUserRequest(req, segments, res) {
   let errors = {};
   let isError = false;
-  if (segments.length > 5) {
+  
+  if (segments !== undefined && segments.length > 5 ) {
     errors.segments = Reason.invalid;
     isError = true;
+    
     Logger.error('Segments error >=5 with segment size: ');
+  }
+  if (segments === undefined) {
+    segments = []
   }
   if (!_.isEmpty(errors)) {
     const response = new CodeError(ErrorType.badRequest);

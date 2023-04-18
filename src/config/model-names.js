@@ -28,4 +28,9 @@ module.exports = {
   speechRecord: 'SpeechRecords',
   speechReport: 'SpeechReports',
   speechReportScript: 'SpeechReportScripts',
+  nodeOsm: 'NodeOSM',
+  wayOsm: 'WayOSM',
+  nodeWayOsm: 'Node_WayOSM',
+  relationOsm: 'RelationOSM',
+  memberOsm: 'MemberOSM',
 };

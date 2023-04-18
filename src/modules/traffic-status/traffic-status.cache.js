@@ -33,12 +33,12 @@ async function cacheTrafficStatus() {
     const now = Date.now();
     const trafficModel = mongoose.model(modelNames.trafficStatus);
     const limit = 200;
-    const count = await trafficModel.countDocuments({});
+    const count = await trafficModel.find({expireAt: {$gt: now}}).countDocuments({});
     let page = 1;
     const totalPage = Math.ceil(count / limit);
     while (page <= totalPage) {
       const segmentStatuses = await trafficModel
-        .find({})
+        .find({expireAt: {$gt: now}})
         .limit(limit)
         .skip((page - 1) * limit);
       page += 1;

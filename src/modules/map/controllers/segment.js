@@ -8,6 +8,8 @@ const {
 const { ResponseFactory } = require('../../../core/response');
 const state = require('../../../state');
 const Service = require('../services');
+const Util = require('../util/read-pbf');
+const Logger = require('../../../core/logger');
 
 async function findNear(req, res, next) {
   try {
@@ -106,6 +108,7 @@ async function direct(req, res, next) {
         return a.time - b.time;
       }
     });
+    console.log("roads: ", roads);
     ResponseFactory.success(roads).send(res);
   } catch (error) {
     next(error);
@@ -214,6 +217,48 @@ async function getCurrentCapacity(req, res, next) {
   }
 }
 
+async function readPbf(req, res, next) {
+  Logger.info("RECIEVE REQ TO READ PBF");
+  let {nodeList, nodeCount, wayList,wayCount, relationList, relationCount} = await Util.readPbf();
+  await Service.OsmService.insertData({nodeList, wayList, relationList});
+  let message = `Import success with ${nodeCount} nodes ${wayCount} ways ${relationCount} relations`;
+  ResponseFactory.success(message).send(res);
+}
+
+async function getNewWayFromBound(req, res, next) {
+  try {
+    Logger.info('RECIEVE REQ TO GET WAY FROM BOUND');
+    const allowedField = ['newBound', 'oldBound'];
+    const data = _.pick(req.body, allowedField);
+    let newBound = await Service.OsmService.getWayAndNodeFromBound(data.newBound);
+    let nodesFromNewBound = newBound.nodes;
+    if (!isSameBoundingBox(data.newBound, data.oldBound)) {
+        let oldBound = await Service.OsmService.getWayAndNodeFromBound(data.oldBound);
+        let newWayId = [];
+        console.log(newBound.newWaySet.size, oldBound.newWaySet.size);
+        newBound.newWaySet.forEach((e) => {
+          if (!oldBound.newWaySet.has(e)) {
+            newWayId.push(e);
+          }
+        })
+        let wayFromNewBound = await Service.OsmService.getWays(newWayId);
+        return ResponseFactory.success({ nodesFromNewBound, wayFromNewBound, isChanging: true}).send(res);
+    }
+    return ResponseFactory.success({nodesFromNewBound, wayFromNewBound:[], isChanging: false}).send(res);
+  }
+  catch (err) {
+    console.log(err);
+    return ResponseFactory.error(err).send(res);
+  }
+}
+
+function isSameBoundingBox(box1, box2) {
+  return box1.topleft.lat == box2.topleft.lat &&
+         box1.topleft.lon == box2.topleft.lon &&
+         box1.botrght.lat == box2.botrght.lat &&
+         box1.botrght.lon == box2.botrght.lon 
+}
+
 module.exports = {
   user: {
     findNear,
@@ -221,6 +266,13 @@ module.exports = {
     findStreet,
     dynamicRouting,
     getCurrentCapacity,
+    readPbf,
+    getNewWayFromBound,
   },
   admin: {},
 };
+
+// lat <= BOTRGHT_HCM[0] && 
+//                 lat >= TOPLEFT_HCM[0] &&
+//                 lng >= BOTRGHT_HCM[1] && 
+//                 lng <= TOPLEFT_HCM[1];

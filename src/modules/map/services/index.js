@@ -8,13 +8,14 @@ const Logger = require('../../../core/logger');
 const FindStreetService = require('./findStreet');
 const DirectFixService = require('./direct-fix');
 const DynamicRouting = require('./dynamic-routing');
-
+const OsmService = require('./osm-services')
 module.exports = {
   Segment,
   Routing,
   FindStreetService,
   DirectFixService,
   DynamicRouting,
+  OsmService,
   init: async () => {
     await MapCache.init(Segment.findMany, Segment.count);
     const notLevelStreet = await mongoose

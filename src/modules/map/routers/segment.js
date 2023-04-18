@@ -8,5 +8,6 @@ router.get('/direct',controller.user.direct);
 router.get('/find-street', controller.user.findStreet);
 router.get('/dynamic-routing', controller.user.dynamicRouting);
 router.get('/get-current-capacity', controller.user.getCurrentCapacity);
-
+router.get('/pbf', controller.user.readPbf);
+router.post('/bbox', controller.user.getNewWayFromBound);
 module.exports = router;
