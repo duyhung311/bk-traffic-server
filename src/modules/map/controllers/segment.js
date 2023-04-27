@@ -218,7 +218,6 @@ async function getCurrentCapacity(req, res, next) {
 }
 
 async function readPbf(req, res, next) {
-  Logger.info("RECIEVE REQ TO READ PBF");
   let {nodeList, nodeCount, wayList,wayCount, relationList, relationCount} = await Util.readPbf();
   await Service.OsmService.insertData({nodeList, wayList, relationList});
   let message = `Import success with ${nodeCount} nodes ${wayCount} ways ${relationCount} relations`;
@@ -227,15 +226,13 @@ async function readPbf(req, res, next) {
 
 async function getNewWayFromBound(req, res, next) {
   try {
-    Logger.info('RECIEVE REQ TO GET WAY FROM BOUND');
     const allowedField = ['newBound', 'oldBound'];
     const data = _.pick(req.body, allowedField);
     let newBound = await Service.OsmService.getWayAndNodeFromBound(data.newBound);
     let nodesFromNewBound = newBound.nodes;
-    if (!isSameBoundingBox(data.newBound, data.oldBound)) {
+    if (!Util.isSameBoundingBox(data.newBound, data.oldBound)) {
         let oldBound = await Service.OsmService.getWayAndNodeFromBound(data.oldBound);
         let newWayId = [];
-        console.log(newBound.newWaySet.size, oldBound.newWaySet.size);
         newBound.newWaySet.forEach((e) => {
           if (!oldBound.newWaySet.has(e)) {
             newWayId.push(e);
@@ -252,11 +249,15 @@ async function getNewWayFromBound(req, res, next) {
   }
 }
 
-function isSameBoundingBox(box1, box2) {
-  return box1.topleft.lat == box2.topleft.lat &&
-         box1.topleft.lon == box2.topleft.lon &&
-         box1.botrght.lat == box2.botrght.lat &&
-         box1.botrght.lon == box2.botrght.lon 
+async function insertLayers(req, res) {
+  let resultStatus = await Service.OsmService.insertLayer();
+  return ResponseFactory.success(resultStatus).send(res);
+}
+
+async function test(req, res) {
+  const data = _.pick(req.body, 'bound');
+  let response = await Service.OsmService.test(data.bound);
+  return ResponseFactory.success(response).send(res);
 }
 
 module.exports = {
@@ -268,11 +269,8 @@ module.exports = {
     getCurrentCapacity,
     readPbf,
     getNewWayFromBound,
+    insertLayers,
+    test,
   },
   admin: {},
 };
-
-// lat <= BOTRGHT_HCM[0] && 
-//                 lat >= TOPLEFT_HCM[0] &&
-//                 lng >= BOTRGHT_HCM[1] && 
-//                 lng <= TOPLEFT_HCM[1];
