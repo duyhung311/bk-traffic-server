@@ -13,6 +13,7 @@ const waySchema = new Schema({
   },
   tags: {type: String},
   info: {type: String},
+  layer: {type:[String]},
 }, {
   
 });

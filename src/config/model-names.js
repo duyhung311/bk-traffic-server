@@ -33,4 +33,5 @@ module.exports = {
   nodeWayOsm: 'Node_WayOSM',
   relationOsm: 'RelationOSM',
   memberOsm: 'MemberOSM',
+  layerOsm: 'LayerOSM',
 };

@@ -11,12 +11,20 @@ const TOPLEFT_HCM = [10.8974, 106.5605];
 const BOTRGHT_HCM = [10.6690, 106.8022];
 
 function isLatLngInHCM(lat, lng) {
-    let isIn =  lat >= BOTRGHT_HCM[0] && 
-                lat <= TOPLEFT_HCM[0] &&
-                lng <= BOTRGHT_HCM[1] && 
-                lng >= TOPLEFT_HCM[1];
+    let isIn =  lat >= BOTRGHT_HCM[0] &&  //<
+                lat <= TOPLEFT_HCM[0] &&  // >
+                lng <= BOTRGHT_HCM[1] && //  > 
+                lng >= TOPLEFT_HCM[1];    //  <
     return isIn;
 }
+
+
+function isSameBoundingBox(box1, box2) {
+    return box1.topLeftLat == box2.topLeftLat &&
+           box1.topLeftLon == box2.topLeftLon &&
+           box1.botRghtLat == box2.botRghtLat &&
+           box1.botRghtLon == box2.botRghtLon
+  }
 
 function stringifyProperties(item) {
     if (item.tags)
@@ -108,4 +116,6 @@ async function readPbf() {
 
 module.exports = {
     readPbf,
+    isLatLngInHCM,
+    isSameBoundingBox,
 }

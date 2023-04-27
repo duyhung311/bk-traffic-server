@@ -29,6 +29,7 @@ const schema = new Schema({
     require: true,
   },
   refWay: {type: [Number]},
+  layer: {type: [String]},
 }, {
   
 });
@@ -41,4 +42,5 @@ mongoose.model(modelName, schema, modelName);
 module.exports = {
   ValidateSchema: validateSchemas,
   Name: modelName,
+  NodeSchema: schema,
 };

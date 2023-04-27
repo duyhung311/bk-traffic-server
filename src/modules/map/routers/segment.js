@@ -10,4 +10,6 @@ router.get('/dynamic-routing', controller.user.dynamicRouting);
 router.get('/get-current-capacity', controller.user.getCurrentCapacity);
 router.get('/pbf', controller.user.readPbf);
 router.post('/bbox', controller.user.getNewWayFromBound);
+router.get('/layers', controller.user.insertLayers)
+router.post('/fetch-layers', controller.user.test)
 module.exports = router;
