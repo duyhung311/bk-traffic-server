@@ -11,7 +11,7 @@ const waySchema = new Schema({
   refs: {
     type: [Number],
   },
-  tags: {type: String},
+  tags: {type: [Object], blackbox: true },
   info: {type: String},
   layer: {type:[String]},
 }, {

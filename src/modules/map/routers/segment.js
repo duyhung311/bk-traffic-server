@@ -12,4 +12,5 @@ router.get('/pbf', controller.user.readPbf);
 router.post('/bbox', controller.user.getNewWayFromBound);
 router.get('/layers', controller.user.insertLayers)
 router.post('/fetch-layers', controller.user.test)
+router.post('/find-way-id', controller.user.test1)
 module.exports = router;

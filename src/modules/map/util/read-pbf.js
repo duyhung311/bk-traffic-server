@@ -83,7 +83,7 @@ async function readPbf() {
                 return true;
             });
             if (isExistInNodeMap) {
-                wayList.push(stringifyProperties(item));
+                wayList.push(item);
                 wayMap[item.id] = {wayId: item.id};
                 nodeWayRef = addValueToNodeWayRef(item, nodeWayRef);
                 wayCount++;
@@ -101,7 +101,7 @@ async function readPbf() {
                 return true;
             });
             if (isExistInWayMap) {
-                relationList.push(stringifyProperties(item));
+                relationList.push(item);
                 relationCount++;
             }
             

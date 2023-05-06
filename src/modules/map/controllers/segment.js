@@ -260,6 +260,11 @@ async function test(req, res) {
   return ResponseFactory.success(response).send(res);
 }
 
+
+async function test1(req, res) {
+  let resultStatus = await Service.OsmService.findWayNotExist();
+  return ResponseFactory.success(resultStatus).send(res); 
+}
 module.exports = {
   user: {
     findNear,
@@ -271,6 +276,7 @@ module.exports = {
     getNewWayFromBound,
     insertLayers,
     test,
+    test1,
   },
   admin: {},
 };

@@ -19,8 +19,8 @@ const layerSchema = new Schema({
     ref: modelNames.nodeOsm,
   },
   ways: {
-    type: String,
-  }
+    type: [Object], blackbox: true 
+  },
 }, {
 });
 

@@ -14,7 +14,7 @@ const relationSchema = new Schema({
     {
         type: [memberOsm],
     },
-    tags: {type: String},
+    tags: {type: [Object], blackbox: true },
     info: {type: String},
 })
 
