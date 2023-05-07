@@ -5,6 +5,8 @@ const Model = require("../models");
 const Script = require("../../../scripts/index");
 const Util = require("../util/read-pbf");
 const wayOsm = require("../models/osm-models/way-osm");
+const { updateMany } = require("../../../core/database");
+const pLimit = require("p-limit");
 
 const nodeModel = Model.NodeOsm.Name;
 const layerModel = Model.LayerOsm.Name;
@@ -120,102 +122,83 @@ async function insertLayer() {
 
   Script.startPool();
 
-  // console.log("clearing tags");
-  // const ways = await Database.findMany('WayOSM', {
-  //   $expr: {
-  //     $gte: [{ $size: "$tags" }, 1]
-  //   }
-  // });
-  // console.log("clearing", ways.length, "tags");
-  // const a = [];
-  // const b = []
-  // for (const e of ways) {
-  //   if (e.tags !== undefined) {
-  //     if (e.tags.length > 0) {
-  //       e.tags = [];
-  //       //console.log(e.tags);
-  //       await Database.updateOne(wayModel, {id: e.id}, e);
-  //     }
-  //     //console.log(e.tags, e.id)
-
-  //   }else {
-  //     //console.log(e);
-  //   }
-  // }
-  // await Database.updateMany(wayModel, {id: {$in: b}}, a)
-  // console.log("cleared stags");
-
   const layerModel = Model.LayerOsm.Name;
   const layerJson = await Script.getLayerInfo();
   console.log(layerJson.length);
   const err = [];
+
+  console.log("** Clearing way tags **");
+  await updateMany(wayModel, {}, { $set: { tags: [] } });
+
+  console.log('** Fetching ways **');
+  const ways = (await Database.findMany(wayModel, {})).map((e) => e.id);
+  console.log(`** Fetched ${ways.length} ways **\n`, ways[0], typeof ways[0]);
+
   for (const i in layerJson) {
-    if (i != 1) continue;
     const l = layerJson[i];
-    console.log('-----Querying layer', i, 'of', layerJson.length - 1, ':', l.name, '-----');
-    // console.log(l.table);
+    console.log(
+      "-----Querying layer",
+      i,
+      "of",
+      layerJson.length - 1,
+      ":",
+      l.name,
+      "-----"
+    );
     const res = await Script.query(l);
     const key = l.name;
+
+    const limit = pLimit(1000);
     if (res) {
-      const wayIdArray = new Set();
-      res.forEach((e) => {
-        wayIdArray.add(e.osm_id);
-      });
-      // const nodes = await getNodeFromWayIdArray(Array.from(wayIdArray));
-      const nodes = [];
+      const updateErr = [];
+      let updatedWays = 0;
       if (res.length > 0) {
-        const awaitAll = res.map((r) => {
-            if (r.osm_id === undefined) {
-              console.log(r);
+        const awaitAll = res
+          .map((r) => {
+            const osmId = Number(r.osm_id);
+            if (osmId === undefined || Object.keys(r).length === 0 || !ways.includes(osmId)) {
+              // console.log("Skip", osmId);
               return;
             }
             const query = {
-              id: r.osm_id,
+              id: osmId,
             };
-            if (r.osm_id === 32575788) {
+            if (osmId === 32575788) {
               console.log(r);
             }
-            // return Database.updateOne(wayModel, query, {$addToSet: {tags: r}} )
-        });
 
-        console.log(awaitAll);
+            return limit(() =>
+              Database.updateOne(wayModel, query, {
+                $addToSet: { tags: r },
+              })
+                .then((e) => {
+                  // console.log("Updated", osmId);
+                  updatedWays++;
+                })
+                .catch((e) => {
+                  updateErr.push(osmId);
+                })
+            );
+          })
+          .filter((e) => e !== undefined);
 
-        await Promise.all(awaitAll);
-        console.log("updated new tags");
+        const segment = 100000;
+        const segmentArr = [];
+        for (let i = 0; i < awaitAll.length; i += segment) {
+          segmentArr.push(Promise.all(awaitAll.slice(i, i + segment)));
+        }
 
-        // console.log(key);
-        // console.log("2: ", wayObjects1.length);
-        // const layer1 = {
-        //   name: key,
-        //   nodes,
-        //   ways: wayObjects1,
-        // };
+        await Promise.all(segmentArr);
 
-        // let a = Database.create(layerModel, layer1).then(e => {return e}).catch(er=> console.log(er));
-
-        // Database.updateMany(wayModel, {id : {$in: Array.from(wayIdArray)}}, {$addToSet: {layer: key}})
-        // .then()
-        // .catch(e => {console.log(e.id)});
-
-        // Database.updateMany(nodeModel, {id : {$in: nodes}}, {$addToSet: {layer: key}})
-        // .then()
-        // .catch(e => {console.log(e.id)});
-      } else {
-        const layer = {
-          name: key,
-          nodes,
-          ways: "waysString",
-        };
-        // const a = Database.create(layerModel, layer)
-        //   .then((e) => e)
-        //   .catch((er) => console.log(er));
+        console.log("Updated", updatedWays, "ways");
+        console.log("Update err:", updateErr);
       }
     } else {
       err.push(key);
     }
   }
 
-  console.log('ERRORS:', err);
+  console.log("QUERY ERRORS:", err);
 
   Script.endPool();
   return "Done";
