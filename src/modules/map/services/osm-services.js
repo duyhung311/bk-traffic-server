@@ -1,18 +1,18 @@
-const { forEach } = require('lodash');
-const Database = require('../../../core/database');
-const Model = require('../models')
-const Script = require('../../../scripts/index');
-const Util = require('../util/read-pbf');
-const wayOsm = require('../models/osm-models/way-osm');
+/* eslint-disable */
+const { forEach } = require("lodash");
+const Database = require("../../../core/database");
+const Model = require("../models");
+const Script = require("../../../scripts/index");
+const Util = require("../util/read-pbf");
+const wayOsm = require("../models/osm-models/way-osm");
+
 const nodeModel = Model.NodeOsm.Name;
 const layerModel = Model.LayerOsm.Name;
 const wayModel = Model.WayOsm.Name;
 const relationModel = Model.RelationOsm.Name;
 
 async function insertData(listsObject) {
-  let { nodeList,
-        wayList,
-        relationList } = listsObject;
+  let { nodeList, wayList, relationList } = listsObject;
   try {
     await insertMany(Model.NodeOsm.Name, nodeList);
     console.log(1);
@@ -26,7 +26,7 @@ async function insertData(listsObject) {
   } catch (err) {
     console.log(err);
   }
-  //return { nodeList, wayList, relationList };
+  // return { nodeList, wayList, relationList };
 }
 
 async function insertMany(model, data) {
@@ -47,36 +47,35 @@ async function insertOneRelation(data) {
 
 async function getNodeFromWayIdArray(wayIdArray) {
   let nodes;
-  let wayQuery = {
-    id: {$in: wayIdArray},
-  }
+  const wayQuery = {
+    id: { $in: wayIdArray },
+  };
   let ways = [];
   try {
     ways = await Database.findMany(wayModel, wayQuery);
-  }
-  catch(err) {
+  } catch (err) {
     return [];
   }
-  let nodeSet = new Set();
+  const nodeSet = new Set();
   ways.forEach((w) => {
     w.refs.forEach((ref) => {
       nodeSet.add(ref);
-    }) 
-  })
+    });
+  });
   const nodeAr = await Array.from(nodeSet);
   try {
     const nodeQuery = {
-      id : {$in: nodeAr}
+      id: { $in: nodeAr },
     };
     nodes = await Database.findMany(nodeModel, nodeQuery);
   } catch (er) {
-    console.log(er)
+    console.log(er);
   }
-  let nodeIds = [];
+  const nodeIds = [];
   nodes.forEach((n) => {
     nodeIds.push(n.id);
-  })
-  
+  });
+
   return nodeIds;
 }
 
@@ -88,10 +87,9 @@ async function getWayAndNodeFromBound(bound) {
       { lon: { $lt: bound.botRghtLon } },
       { lon: { $gt: bound.topLeftLon } },
     ],
-    
   };
-  let nodes = await Database.findMany(nodeModel, query);
-  let newWaySet = new Set();
+  const nodes = await Database.findMany(nodeModel, query);
+  const newWaySet = new Set();
   nodes.forEach((e) => {
     if (e.refWay !== undefined) {
       e.refWay.forEach((ref) => {
@@ -112,7 +110,7 @@ async function getWays(newWaySet) {
   const query = {
     id: {
       $in: newWaySet,
-    }
+    },
   };
   return await Database.findMany(wayModel, query);
 }
@@ -120,6 +118,7 @@ async function getWays(newWaySet) {
 async function insertLayer() {
   console.log("REQ");
 
+  Script.startPool();
 
   // console.log("clearing tags");
   // const ways = await Database.findMany('WayOSM', {
@@ -138,7 +137,7 @@ async function insertLayer() {
   //       await Database.updateOne(wayModel, {id: e.id}, e);
   //     }
   //     //console.log(e.tags, e.id)
-      
+
   //   }else {
   //     //console.log(e);
   //   }
@@ -146,48 +145,54 @@ async function insertLayer() {
   // await Database.updateMany(wayModel, {id: {$in: b}}, a)
   // console.log("cleared stags");
 
-
   const layerModel = Model.LayerOsm.Name;
-  let layerJson = await Script.getLayerInfo(); 
+  const layerJson = await Script.getLayerInfo();
   console.log(layerJson.length);
-  for (const l of layerJson) {
-    let res = await Script.query(l);
-    if (Object.keys(res).length > 0) {
-      let key = Object.keys(res)[0];
-      let wayIdArray = new Set();
-      res[key].forEach(e => {
-        wayIdArray.add(e['osm_id']);
+  const err = [];
+  for (const i in layerJson) {
+    if (i != 1) continue;
+    const l = layerJson[i];
+    console.log('-----Querying layer', i, 'of', layerJson.length - 1, ':', l.name, '-----');
+    // console.log(l.table);
+    const res = await Script.query(l);
+    const key = l.name;
+    if (res) {
+      const wayIdArray = new Set();
+      res.forEach((e) => {
+        wayIdArray.add(e.osm_id);
       });
-      let nodes = await getNodeFromWayIdArray(Array.from(wayIdArray));
-      if (res[key].length > 0) {
-        
-        let wayObjects1 = [];
-        for (const index in res[key]) {            
-          wayObjects1.push(res[key][index]);
-          if (res[key][index]['osm_id'] === undefined) {
-            console.log(res[key][index])
-          }
-          const query = {
-            id: res[key][index]['osm_id']
-          }
-          if (res[key][index]['osm_id'] === 32575788){
-            console.log(res[key][index]);
-          }
-          //await Database.updateOne(wayModel, query, {$addToSet: {tags: res[key][index]}} )
-          
-        }
+      // const nodes = await getNodeFromWayIdArray(Array.from(wayIdArray));
+      const nodes = [];
+      if (res.length > 0) {
+        const awaitAll = res.map((r) => {
+            if (r.osm_id === undefined) {
+              console.log(r);
+              return;
+            }
+            const query = {
+              id: r.osm_id,
+            };
+            if (r.osm_id === 32575788) {
+              console.log(r);
+            }
+            // return Database.updateOne(wayModel, query, {$addToSet: {tags: r}} )
+        });
+
+        console.log(awaitAll);
+
+        await Promise.all(awaitAll);
         console.log("updated new tags");
 
-        console.log(key)
-        console.log("2: ",wayObjects1.length);
-        const layer1 = {
-          name: key,
-          nodes: nodes,
-          ways: wayObjects1,
-        };
+        // console.log(key);
+        // console.log("2: ", wayObjects1.length);
+        // const layer1 = {
+        //   name: key,
+        //   nodes,
+        //   ways: wayObjects1,
+        // };
 
         // let a = Database.create(layerModel, layer1).then(e => {return e}).catch(er=> console.log(er));
-        
+
         // Database.updateMany(wayModel, {id : {$in: Array.from(wayIdArray)}}, {$addToSet: {layer: key}})
         // .then()
         // .catch(e => {console.log(e.id)});
@@ -198,14 +203,21 @@ async function insertLayer() {
       } else {
         const layer = {
           name: key,
-          nodes: nodes,
-          ways: 'waysString',
+          nodes,
+          ways: "waysString",
         };
-        let a = Database.create(layerModel, layer).then(e => {return e;}).catch(er => console.log(er));
+        // const a = Database.create(layerModel, layer)
+        //   .then((e) => e)
+        //   .catch((er) => console.log(er));
       }
-      
-    } 
+    } else {
+      err.push(key);
+    }
   }
+
+  console.log('ERRORS:', err);
+
+  Script.endPool();
   return "Done";
 }
 
@@ -244,7 +256,7 @@ async function insertLayer() {
 //         delete e.refWay;
 //       }
 //     });
-//     const wayResp = await Database.findMany(wayModel, 
+//     const wayResp = await Database.findMany(wayModel,
 //       {
 //         id: {
 //           $in: Array.from(newWaySet)
@@ -326,55 +338,48 @@ async function test(bound) {
 }
 
 async function findWayNotExist() {
-  let layerJson = await Script.getLayerInfo(); 
-  let rels = await Database.findMany(relationModel, {});
-  let relId = [];
-      for (const rel of rels) {
-        relId.push(rel.id);
-      }
-  let ways = await Database.findMany(wayModel, {});
-  let waysId = []
-      ways.forEach((w) => {
-        waysId.push(w);
-      })
+  const layerJson = await Script.getLayerInfo();
+  const rels = await Database.findMany(relationModel, {});
+  const relId = [];
+  for (const rel of rels) {
+    relId.push(rel.id);
+  }
+  const ways = await Database.findMany(wayModel, {});
+  const waysId = [];
+  ways.forEach((w) => {
+    waysId.push(w);
+  });
   for (const l of layerJson) {
-    let res = await Script.query(l);
+    const res = await Script.query(l);
     if (Object.keys(res).length > 0) {
-      let key = Object.keys(res)[0];
-      if (key !== 'text-poly-low-zoom')
-        continue;
-      let wayIdArray = new Set();
-      res[key].forEach(e => {
-        if (e['name'] === 'Hồ Bán Nguyệt')
-          console.log(e);
-        wayIdArray.add(e['osm_id']);
+      const key = Object.keys(res)[0];
+      if (key !== "text-poly-low-zoom") continue;
+      const wayIdArray = new Set();
+      res[key].forEach((e) => {
+        if (e.name === "Hồ Bán Nguyệt") console.log(e);
+        wayIdArray.add(e.osm_id);
       });
-      
-      
+
       console.log(wayIdArray.size, key);
-      //waysId: from mongo vs wayIdArray from postgis
-      let notExist = [];
+      // waysId: from mongo vs wayIdArray from postgis
+      const notExist = [];
       wayIdArray.forEach((e) => {
         if (!waysId.includes(e)) {
           notExist.push(e);
         }
-      })
-      
-      
-      notExist.forEach(n=> {
-        if (relId.includes(n)){
+      });
+
+      notExist.forEach((n) => {
+        if (relId.includes(n)) {
           console.log(n, "is a relation in", key);
         }
-      })
+      });
       console.log(notExist.length, "not exist in", key);
     }
   }
 
-  
-  
   return "Done";
 }
-
 
 module.exports = {
   insertData,
@@ -386,5 +391,4 @@ module.exports = {
   insertLayer,
   test,
   findWayNotExist,
-}
-
+};
