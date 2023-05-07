@@ -16,7 +16,7 @@ const { clearInterval } = require("timers");
 
 const pixel_width = 1/256;
 const pixel_height = 1/256;
-const scale_denominator = 1000;
+const scale_denominator = 2000;
 
 function getLayerInfo () {
   return setup();
@@ -80,54 +80,49 @@ async function parseXML(json) {
       return layerJson; 
     }
 
-async function query(layerInfo) {
-    let result = {};
-    const pool = new Pool({
-      user: 'postgres',
-      host: 'localhost',
-      database: 'gis',
-      password: '123456',
-      port: 5432 // the default port for PostgreSQL is 5432
-    });
-    const rowInfo = [];
-    let done = false;
-    pool.query(layerInfo.table, (err, res) => {
-      if (err) {
-        //console.log(err);
-      } else {
-        res.rows.forEach((r) => {
-          const info = {}
-          Object.entries(r).forEach((entry) => {
-            const [k, v] = entry
-            //console.log(k);
-            if (k !== 'way') {
-              info[k] = v;
-            }
-
+    async function query(layerInfo) {
+      const result = {};
+      const pool = new Pool({
+        user: 'postgres',
+        host: 'localhost',
+        database: 'gis',
+        password: '123456',
+        port: 5432, // the default port for PostgreSQL is 5432
+      });
+      const rowInfo = [];
+      let done = false;
+      pool.query(layerInfo.table, (err, res) => {
+        if (err) {
+          // console.log(err);
+        } else {
+          res.rows.forEach((r) => {
+            const info = {};
+            Object.entries(r).forEach((entry) => {
+              const [k, v] = entry;
+              // console.log(k);
+              if (k !== 'way') {
+                info[k] = v;
+              }
+            });
+            rowInfo.push(info);
           });
-          rowInfo.push(info);
-        });
-        result[layerInfo.name] = rowInfo;
-        //console.log("result {}: ", result[layerInfo.name]);
-      }
-    });
-    done = true;
-    await pool.end();
-    console.log("result before return", Object.values(result).length);
-    return result;
-    // return new Promise((resolve, reject) => {
-    //   let intervalId = setInterval(() => {
-    //     if (done) {
-    //       pool.end(); // always remember to call pool.end() to release the client connections
-    //       clearInterval(intervalId);
-    //       console.log("resolve result", result.length, result.size);
-    //       resolve(result);
-    //     } else {
-    //       console.log("Waiting...");
-    //     }
-    //   }, 1000);
-    // })
-}
+          result[layerInfo.name] = rowInfo;
+          done = true;
+          // console.log("result {}: ", result[layerInfo.name]);
+        }
+      });
+      await new Promise((resolve) => {
+        const intervalId = setInterval(() => {
+          if (done) {
+            clearInterval(intervalId);
+            resolve(result);
+          }
+        }, 500);
+      });
+      await pool.end();
+      console.log('result before return', Object.values(result).length);
+      return result;
+    }
 
 // fs.writeFileSync(
 //   path.join(__dirname, "layer.json"),

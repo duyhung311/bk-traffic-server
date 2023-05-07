@@ -118,7 +118,35 @@ async function getWays(newWaySet) {
 }
 
 async function insertLayer() {
-  console.log("REQ")
+  console.log("REQ");
+
+
+  // console.log("clearing tags");
+  // const ways = await Database.findMany('WayOSM', {
+  //   $expr: {
+  //     $gte: [{ $size: "$tags" }, 1]
+  //   }
+  // });
+  // console.log("clearing", ways.length, "tags");
+  // const a = [];
+  // const b = []
+  // for (const e of ways) {
+  //   if (e.tags !== undefined) {
+  //     if (e.tags.length > 0) {
+  //       e.tags = [];
+  //       //console.log(e.tags);
+  //       await Database.updateOne(wayModel, {id: e.id}, e);
+  //     }
+  //     //console.log(e.tags, e.id)
+      
+  //   }else {
+  //     //console.log(e);
+  //   }
+  // }
+  // await Database.updateMany(wayModel, {id: {$in: b}}, a)
+  // console.log("cleared stags");
+
+
   const layerModel = Model.LayerOsm.Name;
   let layerJson = await Script.getLayerInfo(); 
   console.log(layerJson.length);
@@ -131,13 +159,25 @@ async function insertLayer() {
         wayIdArray.add(e['osm_id']);
       });
       let nodes = await getNodeFromWayIdArray(Array.from(wayIdArray));
-      let
       if (res[key].length > 0) {
-
+        
         let wayObjects1 = [];
         for (const index in res[key]) {            
           wayObjects1.push(res[key][index]);
+          if (res[key][index]['osm_id'] === undefined) {
+            console.log(res[key][index])
+          }
+          const query = {
+            id: res[key][index]['osm_id']
+          }
+          if (res[key][index]['osm_id'] === 32575788){
+            console.log(res[key][index]);
+          }
+          //await Database.updateOne(wayModel, query, {$addToSet: {tags: res[key][index]}} )
+          
         }
+        console.log("updated new tags");
+
         console.log(key)
         console.log("2: ",wayObjects1.length);
         const layer1 = {
@@ -146,16 +186,15 @@ async function insertLayer() {
           ways: wayObjects1,
         };
 
-        let a = Database.create(layerModel, layer1).then(e => {return e}).catch(er=> console.log(er));
-        //Database.create(layerModel, layer1).then().catch(er=> console.log(er));
-        //Database.updateOne(layerModel, {name: key}, {$push:{ways: wayObjects1}}).then().catch(er=> console.log(er));
-        Database.updateMany(wayModel, {id : {$in: Array.from(wayIdArray)}}, {$addToSet: {layer: key}})
-        .then()
-        .catch(e => {console.log(e.id)});
+        // let a = Database.create(layerModel, layer1).then(e => {return e}).catch(er=> console.log(er));
+        
+        // Database.updateMany(wayModel, {id : {$in: Array.from(wayIdArray)}}, {$addToSet: {layer: key}})
+        // .then()
+        // .catch(e => {console.log(e.id)});
 
-        Database.updateMany(nodeModel, {id : {$in: nodes}}, {$addToSet: {layer: key}})
-        .then()
-        .catch(e => {console.log(e.id)});
+        // Database.updateMany(nodeModel, {id : {$in: nodes}}, {$addToSet: {layer: key}})
+        // .then()
+        // .catch(e => {console.log(e.id)});
       } else {
         const layer = {
           name: key,
@@ -232,10 +271,10 @@ async function test(bound) {
   };
   const query = {
     $and: [
-      { lat: { $gt: bound.botRghtLat } },
-      { lat: { $lt: bound.topLeftLat } },
-      { lon: { $lt: bound.botRghtLon } },
-      { lon: { $gt: bound.topLeftLon } },
+      { lat: { $gt: bound.minLat } },
+      { lat: { $lt: bound.maxLat } },
+      { lon: { $lt: bound.maxLon } },
+      { lon: { $gt: bound.minLon } },
     ],
   };
   const nodes = await Database.findMany(nodeModel, query);
