@@ -35,7 +35,7 @@ async function setup() {
   );
 
   const xml = await fs.readFileSync(
-    "C:/Users/ADMIN/Downloads/mapnik.xml",
+    "/Users/hungluong/Documents/u-traffic-modules/osm-scripts/mapnik.xml",
     "utf8"
   );
 

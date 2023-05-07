@@ -127,14 +127,14 @@ async function insertLayer() {
   console.log(layerJson.length);
   const err = [];
 
-  console.log("** Clearing way tags **");
-  await updateMany(wayModel, {}, { $set: { tags: [] } });
+  // console.log("** Clearing way tags **");
+  // await updateMany(wayModel, {}, { $set: { tags: [] } });
 
   console.log('** Fetching ways **');
-  const ways = (await Database.findMany(wayModel, {})).map((e) => e.id);
-  console.log(`** Fetched ${ways.length} ways **\n`, ways[0], typeof ways[0]);
-
+  const ways = new Set((await Database.findMany(wayModel, {})).map((e) => e.id));
   for (const i in layerJson) {
+    if (i != 28) continue;
+    if (i != 26) continue;
     const l = layerJson[i];
     console.log(
       "-----Querying layer",
@@ -148,7 +148,7 @@ async function insertLayer() {
     const res = await Script.query(l);
     const key = l.name;
 
-    const limit = pLimit(1000);
+    const limit = pLimit(100000);
     if (res) {
       const updateErr = [];
       let updatedWays = 0;
@@ -156,7 +156,7 @@ async function insertLayer() {
         const awaitAll = res
           .map((r) => {
             const osmId = Number(r.osm_id);
-            if (osmId === undefined || Object.keys(r).length === 0 || !ways.includes(osmId)) {
+            if (osmId === undefined || !ways.has(osmId)) {
               // console.log("Skip", osmId);
               return;
             }
@@ -172,7 +172,7 @@ async function insertLayer() {
                 $addToSet: { tags: r },
               })
                 .then((e) => {
-                  // console.log("Updated", osmId);
+                  //console.log("Updated", osmId);
                   updatedWays++;
                 })
                 .catch((e) => {
@@ -181,6 +181,8 @@ async function insertLayer() {
             );
           })
           .filter((e) => e !== undefined);
+          console.log("awaitAll", awaitAll.length);
+
 
         const segment = 100000;
         const segmentArr = [];
