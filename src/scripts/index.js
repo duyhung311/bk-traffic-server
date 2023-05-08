@@ -138,6 +138,8 @@ async function query(layerInfo) {
 //   "utf8"
 // );
 
+
+way.count({"tags.landcover":{$exists: true}})
 module.exports = {
   getLayerInfo,
   query,
