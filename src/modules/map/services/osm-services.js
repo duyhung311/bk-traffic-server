@@ -366,6 +366,44 @@ async function findWayNotExist() {
   return "Done";
 }
 
+async function addBoundToWay() {
+  const ways = await Database.findMany(wayModel, {maxLat: {$exists: false}});
+  console.log("Found", ways.length, "ways");
+  for (const w of ways) {
+    const nodeQuery = {
+      id : {$in: w.refs}
+    }
+    const nodesInWay = await Database.findMany(nodeModel, nodeQuery);
+    let maxLat = 0; 
+    let minLat = 2000;
+    let maxLon = 0;
+    let minLon = 2000;
+    //console.log(nodesInWay.length);
+    for (const n of nodesInWay) {
+      if(n.lat < minLat)
+        minLat = n.lat;
+      if (n.lat > maxLat);
+        maxLat = n.lat;
+
+      if(n.lon < minLon)
+        minLon = n.lon;
+      if (n.lon > maxLon);
+        maxLon = n.lon;
+    }
+    const update = {
+      $set : {
+        maxLat: maxLat,
+        minLat: minLat,
+        maxLon: maxLon,
+        minLon: minLon,
+      }
+    }
+    //console.log("------inserting", update, "to WayOSM with id =", w.id)
+    await Database.updateOne(wayModel, {id: w.id}, update);
+  }
+  Promise.all(awaitAll).then(e => {return "Done"}).catch(er => console.log(er));
+}
+
 module.exports = {
   insertData,
   insertOneNode,
@@ -376,4 +414,5 @@ module.exports = {
   insertLayer,
   test,
   findWayNotExist,
+  addBoundToWay,
 };

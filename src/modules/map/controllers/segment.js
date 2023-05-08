@@ -265,6 +265,12 @@ async function test1(req, res) {
   let resultStatus = await Service.OsmService.findWayNotExist();
   return ResponseFactory.success(resultStatus).send(res); 
 }
+
+async function addBoundToWay(req, res) {
+  const resultStatus = await Service.OsmService.addBoundToWay();
+  return ResponseFactory.success(resultStatus).send(res); 
+
+}
 module.exports = {
   user: {
     findNear,
@@ -277,6 +283,7 @@ module.exports = {
     insertLayers,
     test,
     test1,
+    addBoundToWay,
   },
   admin: {},
 };

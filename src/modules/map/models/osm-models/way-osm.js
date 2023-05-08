@@ -14,6 +14,10 @@ const waySchema = new Schema({
   tags: {type: [Object], blackbox: true },
   info: {type: String},
   layer: {type:[String]},
+  maxLat: Number,
+  minLat: Number,
+  maxLon: Number,
+  minLon: Number,
 }, {
   
 });
