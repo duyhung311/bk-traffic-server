@@ -127,14 +127,14 @@ async function insertLayer() {
   console.log(layerJson.length);
   const err = [];
 
-  // console.log("** Clearing way tags **");
-  // await updateMany(wayModel, {}, { $set: { tags: [] } });
+  console.log("** Clearing way tags **");
+  await updateMany(wayModel, {}, { $set: { tags: {} } });
 
   console.log('** Fetching ways **');
   const ways = new Set((await Database.findMany(wayModel, {})).map((e) => e.id));
-  for (const i in layerJson) {
-    if (i != 28) continue;
-    if (i != 26) continue;
+  for (const a in layerJson) {
+    const i = Number(a);
+
     const l = layerJson[i];
     console.log(
       "-----Querying layer",
@@ -151,7 +151,7 @@ async function insertLayer() {
     const limit = pLimit(100000);
     if (res) {
       const updateErr = [];
-      let updatedWays = 0;
+      let updatedWays = [];
       if (res.length > 0) {
         const awaitAll = res
           .map((r) => {
@@ -160,6 +160,7 @@ async function insertLayer() {
               // console.log("Skip", osmId);
               return;
             }
+            updatedWays.push(osmId);
             const query = {
               id: osmId,
             };
@@ -169,20 +170,29 @@ async function insertLayer() {
 
             return limit(() =>
               Database.updateOne(wayModel, query, {
-                $addToSet: { tags: r },
+                $set: {
+                  [`tags.${key}`]: r,
+                },
               })
-                .then((e) => {
-                  //console.log("Updated", osmId);
-                  updatedWays++;
-                })
-                .catch((e) => {
-                  updateErr.push(osmId);
-                })
+              .then((e) => {
+                //console.log("Updated", osmId);
+              })
+              .catch((e) => {
+                updateErr.push(osmId);
+              })
             );
+
           })
           .filter((e) => e !== undefined);
-          console.log("awaitAll", awaitAll.length);
 
+        // awaitAll.push(Database.updateMany(wayModel, {id : {$in: updatedWays}}, {$addToSet: {layer: key}})
+        //   .then(e => {
+        //     console.log(e);
+        //     if (e.nModified !== updatedWays.length && e.n !== updatedWays.length ) {
+        //       console.error("Not match")
+        //     }
+        //   }))
+        console.log("awaitAll", awaitAll.length);
 
         const segment = 100000;
         const segmentArr = [];
@@ -192,7 +202,7 @@ async function insertLayer() {
 
         await Promise.all(segmentArr);
 
-        console.log("Updated", updatedWays, "ways");
+        console.log("Updated", updatedWays.length, "ways");
         console.log("Update err:", updateErr);
       }
     } else {
@@ -206,120 +216,41 @@ async function insertLayer() {
   return "Done";
 }
 
-// async function test(bound) {
-//   const response = [];
-//   const nodeModel = Model.NodeOsm.Name;
-//   const query = {
-//     $and: [
-//       { lat: { $gt: bound.botRghtLat } },
-//       { lat: { $lt: bound.topLeftLat } },
-//       { lon: { $lt: bound.botRghtLon } },
-//       { lon: { $gt: bound.topLeftLon } },
-//     ]
-//   };
-//   let nodes = await Database.findMany(nodeModel, query);
-//   console.log(nodes.length);
-//   let layerName = new Set();
-//   nodes.forEach((node) => {
-//     node.layer.forEach((l)=> {
-//       layerName.add(l);
-//     })
-//   });
-//   //console.log(layerName);
-//   for (const layer of layerName) {
-//     const layerSet = new Set(layer.layer);
-//     const nodeResp = nodes.filter((n) => {
-//       return layerSet.has(n)
-//     });
-//     let newWaySet = new Set();
-//     nodes.forEach((e) => {
-//     //nodeResp.forEach((e) => {
-//       if (e.refWay !== undefined) {
-//         e.refWay.forEach((ref) => {
-//           newWaySet.add(ref);
-//         });
-//         delete e.refWay;
-//       }
-//     });
-//     const wayResp = await Database.findMany(wayModel,
-//       {
-//         id: {
-//           $in: Array.from(newWaySet)
-//         }
-//       });
-
-//     console.log(wayResp[0].tags);
-//     const layerResp = {
-//       name: layer,
-//       nodes: nodes,
-//       ways: wayResp,
-//     }
-//     response.push(layerResp)
-//     //console.log(layerResp);
-//   }
-
-//   return response;
-// }
-
 async function test(bound) {
-  const response = {
-    nodes: [],
-    layers: {},
-  };
-  const query = {
+  const wayQuery = {
     $and: [
-      { lat: { $gt: bound.minLat } },
-      { lat: { $lt: bound.maxLat } },
-      { lon: { $lt: bound.maxLon } },
-      { lon: { $gt: bound.minLon } },
-    ],
-  };
-  const nodes = await Database.findMany(nodeModel, query);
-  const layerName = new Set();
-  nodes.forEach((node) => {
-    node.layer.forEach((l) => {
-      layerName.add(l);
-    });
-  });
-  const layerNameList = Array.from(layerName);
-  const newWaySet = new Set();
-  const nodeResp = nodes.map((e) => {
-    if (e.refWay !== undefined) {
-      e.refWay.forEach((ref) => {
-        newWaySet.add(ref);
-      });
-    }
-
-    return {
-      id: e.id,
-      lat: e.lat,
-      lon: e.lon,
-    };
-  });
-  response.nodes = nodeResp;
-  const wayResp = await Database.findMany(wayModel, {
-    id: {
-      $in: Array.from(newWaySet),
-    },
-  });
-  wayResp.forEach((e) => {
-    e.layer.forEach((l) => {
-      if (layerNameList.includes(l)) {
-        if (response.layers[l] === undefined) {
-          response.layers[l] = [];
-        }
-        response.layers[l].push({
-          id: e.id,
-          refs: e.refs,
-          tags: e.tags,
-        });
+      {
+        maxLat: { $gte: bound.minLat }
+      },
+      {
+        minLat: { $lte: bound.maxLat }
+      },
+      {
+        maxLon: { $gte: bound.minLon }
+      },
+      {
+        minLon: { $lte: bound.maxLon }
       }
-    });
+    ]
+  }
 
-    console.log(e.tags);
-  });
+  const ways = (await Database.findMany(wayModel, wayQuery)).map(w => ({
+    id: w.id,
+    refs: w.refs,
+    tags: w.tags
+  }));
+  const nodeIds = new Set(ways.map(w => w.refs).flat());
+  const nodes = (await Database.findMany(nodeModel, { id: { $in: Array.from(nodeIds) } }).catch(console.error))
+    .map(n => ({
+      id: n.id,
+      lat: n.lat,
+      lon: n.lon
+    }));
 
-  return response;
+  return {
+    ways,
+    nodes
+  }
 }
 
 async function findWayNotExist() {

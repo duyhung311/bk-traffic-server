@@ -132,14 +132,7 @@ async function query(layerInfo) {
   return result;
 }
 
-// fs.writeFileSync(
-//   path.join(__dirname, "layer.json"),
-//   JSON.stringify(layerJson),
-//   "utf8"
-// );
 
-
-way.count({"tags.landcover":{$exists: true}})
 module.exports = {
   getLayerInfo,
   query,
