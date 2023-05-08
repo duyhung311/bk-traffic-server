@@ -181,7 +181,6 @@ async function insertLayer() {
                 updateErr.push(osmId);
               })
             );
-
           })
           .filter((e) => e !== undefined);
 
@@ -218,39 +217,62 @@ async function insertLayer() {
 
 async function test(bound) {
   const wayQuery = {
-    $and: [
+    $or: [
       {
-        maxLat: { $gte: bound.minLat }
+        $and: [
+          {
+            maxLat: { $gte: bound.minLat },
+          },
+          {
+            minLat: { $lte: bound.maxLat },
+          },
+          {
+            maxLon: { $gte: bound.minLon },
+          },
+          {
+            minLon: { $lte: bound.maxLon },
+          },
+        ],
       },
       {
-        minLat: { $lte: bound.maxLat }
-      },
-      {
-        maxLon: { $gte: bound.minLon }
-      },
-      {
-        minLon: { $lte: bound.maxLon }
+        $and: [
+          {
+            minLat: { $gte: bound.minLat },
+          },
+          {
+            maxLat: { $lte: bound.maxLat },
+          },
+          {
+            minLon: { $gte: bound.minLon },
+          },
+          {
+            maxLon: { $lte: bound.maxLon },
+          },
+        ],
       }
-    ]
-  }
+    ],
+  };
 
-  const ways = (await Database.findMany(wayModel, wayQuery)).map(w => ({
+  const ways = (await Database.findMany(wayModel, wayQuery)).map((w) => ({
     id: w.id,
     refs: w.refs,
-    tags: w.tags
+    tags: w.tags,
   }));
-  const nodeIds = new Set(ways.map(w => w.refs).flat());
-  const nodes = (await Database.findMany(nodeModel, { id: { $in: Array.from(nodeIds) } }).catch(console.error))
-    .map(n => ({
-      id: n.id,
-      lat: n.lat,
-      lon: n.lon
-    }));
+  const nodeIds = new Set(ways.map((w) => w.refs).flat());
+  const nodes = (
+    await Database.findMany(nodeModel, {
+      id: { $in: Array.from(nodeIds) },
+    }).catch(console.error)
+  ).map((n) => ({
+    id: n.id,
+    lat: n.lat,
+    lon: n.lon,
+  }));
 
   return {
     ways,
-    nodes
-  }
+    nodes,
+  };
 }
 
 async function findWayNotExist() {
@@ -298,41 +320,45 @@ async function findWayNotExist() {
 }
 
 async function addBoundToWay() {
-  const ways = await Database.findMany(wayModel, {maxLat: {$exists: false}});
+  const ways = await Database.findMany(wayModel, {
+    maxLat: { $exists: false },
+  });
   console.log("Found", ways.length, "ways");
   for (const w of ways) {
     const nodeQuery = {
-      id : {$in: w.refs}
-    }
+      id: { $in: w.refs },
+    };
     const nodesInWay = await Database.findMany(nodeModel, nodeQuery);
-    let maxLat = 0; 
+    let maxLat = 0;
     let minLat = 2000;
     let maxLon = 0;
     let minLon = 2000;
     //console.log(nodesInWay.length);
     for (const n of nodesInWay) {
-      if(n.lat < minLat)
-        minLat = n.lat;
+      if (n.lat < minLat) minLat = n.lat;
       if (n.lat > maxLat);
-        maxLat = n.lat;
+      maxLat = n.lat;
 
-      if(n.lon < minLon)
-        minLon = n.lon;
+      if (n.lon < minLon) minLon = n.lon;
       if (n.lon > maxLon);
-        maxLon = n.lon;
+      maxLon = n.lon;
     }
     const update = {
-      $set : {
+      $set: {
         maxLat: maxLat,
         minLat: minLat,
         maxLon: maxLon,
         minLon: minLon,
-      }
-    }
+      },
+    };
     //console.log("------inserting", update, "to WayOSM with id =", w.id)
-    await Database.updateOne(wayModel, {id: w.id}, update);
+    await Database.updateOne(wayModel, { id: w.id }, update);
   }
-  Promise.all(awaitAll).then(e => {return "Done"}).catch(er => console.log(er));
+  Promise.all(awaitAll)
+    .then((e) => {
+      return "Done";
+    })
+    .catch((er) => console.log(er));
 }
 
 module.exports = {
