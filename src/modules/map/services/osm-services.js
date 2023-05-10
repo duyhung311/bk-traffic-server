@@ -11,6 +11,7 @@ const pLimit = require("p-limit");
 const nodeModel = Model.NodeOsm.Name;
 const layerModel = Model.LayerOsm.Name;
 const wayModel = Model.WayOsm.Name;
+const wayModelScale1000 = Model.WayOsmScale1000.Name;
 const relationModel = Model.RelationOsm.Name;
 
 async function insertData(listsObject) {
@@ -128,10 +129,10 @@ async function insertLayer() {
   const err = [];
 
   console.log("** Clearing way tags **");
-  await updateMany(wayModel, {}, { $set: { tags: {} } });
+  await updateMany(wayModelScale1000, {}, { $set: { tags: {} } }).catch(er => console.log(er));
 
   console.log('** Fetching ways **');
-  const ways = new Set((await Database.findMany(wayModel, {})).map((e) => e.id));
+  const ways = new Set((await Database.findMany(wayModelScale1000, {})).map((e) => e.id));
   for (const a in layerJson) {
     const i = Number(a);
 
@@ -169,7 +170,7 @@ async function insertLayer() {
             }
 
             return limit(() =>
-              Database.updateOne(wayModel, query, {
+              Database.updateOne(wayModelScale1000, query, {
                 $set: {
                   [`tags.${key}`]: r,
                 },
@@ -217,28 +218,53 @@ async function insertLayer() {
 }
 
 async function test(bound) {
+  const boundMinLat = bound.minLat;
+  const boundMaxLat = bound.maxLat;
+  const boundMinLon = bound.minLon;
+  const boundMaxLon = bound.maxLon;
+
   const wayQuery = {
-    $and: [
+    $or: [
       {
-        maxLat: { $gte: bound.minLat }
+        // check if obj1 contains obj2
+        minLat: {$lte: boundMinLat},
+        maxLat: {$gte: boundMaxLat},
+        minLon: {$lte: boundMinLon},
+        maxLon: {$gte: boundMaxLon},
       },
       {
-        minLat: { $lte: bound.maxLat }
+        // check if obj2 contains obj1
+        minLat: { $gte: boundMinLat },
+        maxLat: { $lte: boundMaxLat },
+        minLon: { $gte: boundMinLon },
+        maxLon: { $lte: boundMaxLon },
       },
       {
-        maxLon: { $gte: bound.minLon }
+        // check if obj1 and obj2 intersect
+        $nor: [
+          {minLat: {$gt: boundMaxLat}},
+          {maxLat: {$lt: boundMinLat}},
+          {minLon: {$gt: boundMaxLon}},
+          {maxLon: {$lt: boundMinLon}},
+        ],
       },
-      {
-        minLon: { $lte: bound.maxLon }
-      }
-    ]
+    ],
   }
 
-  const ways = (await Database.findMany(wayModel, wayQuery)).map(w => ({
+  const sortedLayers = {};
+  const ways = (await Database.findMany(wayModel, wayQuery)).map(w => {
+    Object.keys(w.tags).forEach(k => {
+      if (sortedLayers[k] === undefined) {
+        sortedLayers[k] = [];
+      }
+      sortedLayers[k].push(w.id);
+    })
+    return {
     id: w.id,
     refs: w.refs,
-    tags: w.tags
-  }));
+    tags: { ...w.tags, postgisOrder: undefined}
+    }
+  });
   const nodeIds = new Set(ways.map(w => w.refs).flat());
   const nodes = (await Database.findMany(nodeModel, { id: { $in: Array.from(nodeIds) } }).catch(console.error))
     .map(n => ({
@@ -249,7 +275,8 @@ async function test(bound) {
 
   return {
     ways,
-    nodes
+    nodes,
+    layersOrder: sortedLayers
   }
 }
 
@@ -298,31 +325,40 @@ async function findWayNotExist() {
 }
 
 async function addBoundToWay() {
-  const ways = await Database.findMany(wayModel, {maxLat: {$exists: false}});
+  await Database.updateMany(wayModelScale1000, {}, {$unset: {maxLat: 1, maxLon: 1, minLat: 1, minLon: 1}});
+  console.log("Cleared bbox");
+  const ways = await Database.findMany(wayModelScale1000, {});
   console.log("Found", ways.length, "ways");
-  for (const w of ways) {
-    const nodeQuery = {
-      id : {$in: w.refs}
-    }
-    const nodesInWay = await Database.findMany(nodeModel, nodeQuery);
-    let maxLat = 0; 
+  const nodes = (await Database.findMany(nodeModel, {})).reduce((acc, cur) => {
+    acc[cur.id] = {
+      lat: cur.lat,
+      lon: cur.lon
+    };
+    return acc;
+  }, {});
+  console.log("Found", Object.keys(nodes).length, "nodes");
+
+  const limit = pLimit(1e5);
+  let numNodesNotInDb = 0;
+  const awaitAll = ways.map(w => {
+    let maxLat = 0;
     let minLat = 2000;
     let maxLon = 0;
     let minLon = 2000;
     //console.log(nodesInWay.length);
-    for (const n of nodesInWay) {
-      if(n.lat < minLat)
-        minLat = n.lat;
-      if (n.lat > maxLat);
-        maxLat = n.lat;
-
-      if(n.lon < minLon)
-        minLon = n.lon;
-      if (n.lon > maxLon);
-        maxLon = n.lon;
-    }
+    w.refs.forEach((r) => {
+      const n = nodes[r.toString()];
+      if (n === undefined) {
+        numNodesNotInDb++;
+        return;
+      }
+      maxLat = Math.max(maxLat, n.lat);
+      minLat = Math.min(minLat, n.lat);
+      maxLon = Math.max(maxLon, n.lon);
+      minLon = Math.min(minLon, n.lon);
+    });
     const update = {
-      $set : {
+      $set: {
         maxLat: maxLat,
         minLat: minLat,
         maxLon: maxLon,
@@ -330,9 +366,19 @@ async function addBoundToWay() {
       }
     }
     //console.log("------inserting", update, "to WayOSM with id =", w.id)
-    await Database.updateOne(wayModel, {id: w.id}, update);
+    return limit(() => Database.updateOne(wayModelScale1000, { id: w.id }, update));
+  });
+
+  console.log("Found", numNodesNotInDb, "nodes not in db");
+  console.log("Updating", awaitAll.length, "ways");
+
+  const segment = 100000;
+  const segmentArr = [];
+  for (let i = 0; i < awaitAll.length; i += segment) {
+    segmentArr.push(Promise.all(awaitAll.slice(i, i + segment)));
   }
-  Promise.all(awaitAll).then(e => {return "Done"}).catch(er => console.log(er));
+
+  await Promise.all(segmentArr);
 }
 
 module.exports = {

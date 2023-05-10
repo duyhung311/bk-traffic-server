@@ -18,7 +18,7 @@ let pool;
 
 const pixel_width = 1 / 256;
 const pixel_height = 1 / 256;
-const scale_denominator = 2000;
+const scale_denominator = 1000;
 
 function getLayerInfo() {
   return setup();
@@ -112,8 +112,11 @@ async function query(layerInfo) {
     if (err) {
       // console.error(err);
     } else {
-      res.rows.forEach(({ way, ...r }) => {
-        rowInfo.push(r);
+      res.rows.forEach(({ way, ...r }, index) => {
+        rowInfo.push({
+          ...r,
+          postgisOrde: index,
+        });
       });
       result = rowInfo;
       // console.log("result {}: ", result[layerInfo.name]);
