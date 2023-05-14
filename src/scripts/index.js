@@ -115,7 +115,7 @@ async function query(layerInfo) {
       res.rows.forEach(({ way, ...r }, index) => {
         rowInfo.push({
           ...r,
-          postgisOrde: index,
+          postgisOrder: index,
         });
       });
       result = rowInfo;
