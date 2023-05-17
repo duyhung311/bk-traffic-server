@@ -526,9 +526,10 @@ async function direct(startCoord, endCoord, type, isPublicData = false) {
     Logger.info('Start direct');
     const paths = await findKShortestRoad(startCoord, endCoord, 2, type);
     if (!paths) {
+      console.log("return []")
       return [];
     }
-    Logger.info('Found %d path', paths.length);
+    Logger.info('1Found %d path', paths.length);
 
     await Promise.all(paths.map(async (path, idx) => {
       const segments = path.path.map((item) => ({
@@ -539,6 +540,7 @@ async function direct(startCoord, endCoord, type, isPublicData = false) {
       return historyModule
         .insertPathHistory({ segments })
         .then((history) => {
+          console.log("history", history);
           paths[idx]._id = history._id;
         });
     }));

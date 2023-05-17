@@ -76,9 +76,8 @@ async function findMany(model, query, sort, limit = null, skip, populate, select
 async function create(model, query) {
   try {
     const ref = mongoose.model(model);
-    // const doc = await ref.create(query);
-    // return doc.toObject();
-    ref.create(query).then(e => {return e.toObject()}).catch(er => console.log(er));
+    const doc = await ref.create(query);
+    return doc.toObject();
   } catch (err) {
     throw new CodeError({ ...ErrorType.serviceError, debugError: err });
   }

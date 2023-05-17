@@ -252,7 +252,7 @@ async function test(bound) {
   }
 
   const sortedLayers = {};
-  const ways = (await Database.findMany(wayModel, wayQuery)).map(w => {
+  const ways = (await Database.findMany(wayModelScale1000, wayQuery)).map(w => {
     Object.keys(w.tags).forEach(k => {
       if (sortedLayers[k] === undefined) {
         sortedLayers[k] = [];

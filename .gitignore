@@ -12,4 +12,3 @@ logs/
 .vscode
 test-direct-file
 tmp/
-src/*
