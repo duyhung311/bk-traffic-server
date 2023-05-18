@@ -217,27 +217,10 @@ async function getCurrentCapacity(req, res, next) {
   }
 }
 
-async function readPbf(req, res, next) {
-  let {nodeList, nodeCount, wayList,wayCount, relationList, relationCount} = await Util.readPbf();
-  await Service.OsmService.insertData({nodeList, wayList, relationList});
-  let message = `Import success with ${nodeCount} nodes ${wayCount} ways ${relationCount} relations`;
-  ResponseFactory.success(message).send(res);
-}
-
-async function insertLayers(req, res) {
-  let resultStatus = await Service.OsmService.insertLayer();
-  return ResponseFactory.success(resultStatus).send(res);
-}
-
 async function fetchLayer(req, res) {
   const data = _.pick(req.body, 'bound');
   let response = await Service.OsmService.fetchLayer(data.bound);
   return ResponseFactory.success(response).send(res);
-}
-
-async function addBoundToWay(req, res) {
-  const resultStatus = await Service.OsmService.addBoundToWay();
-  return ResponseFactory.success(resultStatus).send(res); 
 }
 
 module.exports = {
@@ -247,10 +230,7 @@ module.exports = {
     findStreet,
     dynamicRouting,
     getCurrentCapacity,
-    readPbf,
-    insertLayers,
     fetchLayer,
-    addBoundToWay,
   },
   admin: {},
 };

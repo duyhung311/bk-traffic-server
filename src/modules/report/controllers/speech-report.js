@@ -126,11 +126,7 @@ async function processSpeechReportMobile(req, res, next) {
     let { isError, reportData } = await validateUserRequest(req, segments, res);
     if (!isError) 
       return;
-
-    let decodedAudioFile = Buffer.from(dataFile, 'base64');
-    fs.writeFileSync('./audio.wav', decodedAudioFile);
-
-    const audioFile = fs.readFileSync('./audio.wav');
+    const audioFile = Buffer.from(dataFile, 'base64');
     Logger.info(`Bucket Url: dlb://${speech_record_id}`);
     // create input bucket
     const inputBucketUrl = await axios
@@ -189,14 +185,13 @@ async function processSpeechReportMobile(req, res, next) {
           Logger.info(statusEnhanced);
           if (statusEnhanced === 'Success') {
             // downloading enhanced audio
-            Logger.info('Success status');
             let downloadUrl = await getDownloadUrl(speech_record_id, apiKey);
             let enhancedBuffer = await Service.SpeechRecord.downloadEnhancedAudio(downloadUrl, speech_record_id);
             reportData.speech_record = speech_record_id;
             Service.SpeechRecord.insertOne({
               _id: speech_record_id,
-              data: decodedAudioFile,
-              length: decodedAudioFile.size,
+              data: audioFile,
+              length: audioFile.size,
               contentType: 'audio/x-wav',
               encoding: '16bit',
               dataEnhanced: enhancedBuffer,
@@ -220,7 +215,6 @@ async function validateUserRequest(req, segments, res) {
   if (segments !== undefined && segments.length > 5 ) {
     errors.segments = Reason.invalid;
     isError = true;
-    
     Logger.error('Segments error >=5 with segment size: ');
   }
   if (segments === undefined) {
@@ -279,14 +273,13 @@ async function getStatusEnhanced(jobId) {
     )
     .then((response) => {
       if (response.data.status !== 'Success') {
-        Logger.warn("Status failed: %s", response.data.status);
+        Logger.warn("Status: %s", response.data.status);
         throw error;
       }
       return response.data.status;
     })
     .catch((error) => {
       if (retry >= MAX_RETRY) return 'Failed';
-      //Logger.warn('[Enhance Audio Service]Retry getting status.');
       return new Promise((resolve) => {
         setTimeout(() => {
           retry += 1;
@@ -309,10 +302,8 @@ async function getDownloadUrl(speechRecordId, apiKey) {
                 'content-type': 'application/json'}
     }
   ).then((response) => {
-    console.log(response);
     return response.data.url;
   });
-  
 }
 
 module.exports = {
