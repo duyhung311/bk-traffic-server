@@ -1,15 +1,11 @@
-/* eslint-disable */
-const { forEach } = require("lodash");
 const Database = require("../../../core/database");
 const Model = require("../models");
 const Script = require("../../../scripts/index");
-const Util = require("../util/read-pbf");
-const wayOsm = require("../models/osm-models/way-osm");
 const { updateMany } = require("../../../core/database");
+const Logger = require('../../../core/logger');
 const pLimit = require("p-limit");
 
 const nodeModel = Model.NodeOsm.Name;
-const layerModel = Model.LayerOsm.Name;
 const wayModel = Model.WayOsm.Name;
 const wayModelScale1000 = Model.WayOsmScale1000.Name;
 const relationModel = Model.RelationOsm.Name;
@@ -18,18 +14,14 @@ async function insertData(listsObject) {
   let { nodeList, wayList, relationList } = listsObject;
   try {
     await insertMany(Model.NodeOsm.Name, nodeList);
-    console.log(1);
     nodeList = null;
-    // await insertMany(Model.WayOsm.Name, wayList);
-    // console.log(2)
-    // wayList = null;
-    // await insertMany(Model.RelationOsm.Name, relationList);
-    // console.log(3)
-    // relationList = null;
+    await insertMany(Model.WayOsm.Name, wayList);
+    wayList = null;
+    await insertMany(Model.RelationOsm.Name, relationList);
+    relationList = null;
   } catch (err) {
-    console.log(err);
+    Logger.info(err);
   }
-  // return { nodeList, wayList, relationList };
 }
 
 async function insertMany(model, data) {
@@ -72,7 +64,7 @@ async function getNodeFromWayIdArray(wayIdArray) {
     };
     nodes = await Database.findMany(nodeModel, nodeQuery);
   } catch (er) {
-    console.log(er);
+    Logger.info(er);
   }
   const nodeIds = [];
   nodes.forEach((n) => {
@@ -119,25 +111,25 @@ async function getWays(newWaySet) {
 }
 
 async function insertLayer() {
-  console.log("REQ");
+  Logger.info("REQ");
 
   Script.startPool();
 
   const layerModel = Model.LayerOsm.Name;
   const layerJson = await Script.getLayerInfo();
-  console.log(layerJson.length);
+  Logger.info(layerJson.length);
   const err = [];
 
-  console.log("** Clearing way tags **");
-  await updateMany(wayModelScale1000, {}, { $set: { tags: {} } }).catch(er => console.log(er));
+  Logger.info("** Clearing way tags **");
+  await updateMany(wayModelScale1000, {}, { $set: { tags: {} } }).catch(er => Logger.info(er));
 
-  console.log('** Fetching ways **');
+  Logger.info('** Fetching ways **');
   const ways = new Set((await Database.findMany(wayModelScale1000, {})).map((e) => e.id));
   for (const a in layerJson) {
     const i = Number(a);
 
     const l = layerJson[i];
-    console.log(
+    Logger.info(
       "-----Querying layer",
       i,
       "of",
@@ -158,25 +150,18 @@ async function insertLayer() {
           .map((r) => {
             const osmId = Number(r.osm_id);
             if (osmId === undefined || !ways.has(osmId)) {
-              // console.log("Skip", osmId);
               return;
             }
             updatedWays.push(osmId);
             const query = {
               id: osmId,
             };
-            if (osmId === 32575788) {
-              console.log(r);
-            }
-
+            
             return limit(() =>
               Database.updateOne(wayModelScale1000, query, {
                 $set: {
                   [`tags.${key}`]: r,
                 },
-              })
-              .then((e) => {
-                //console.log("Updated", osmId);
               })
               .catch((e) => {
                 updateErr.push(osmId);
@@ -188,12 +173,12 @@ async function insertLayer() {
 
         // awaitAll.push(Database.updateMany(wayModel, {id : {$in: updatedWays}}, {$addToSet: {layer: key}})
         //   .then(e => {
-        //     console.log(e);
+        //     Logger.info(e);
         //     if (e.nModified !== updatedWays.length && e.n !== updatedWays.length ) {
         //       console.error("Not match")
         //     }
         //   }))
-        console.log("awaitAll", awaitAll.length);
+        Logger.info("awaitAll", awaitAll.length);
 
         const segment = 100000;
         const segmentArr = [];
@@ -203,21 +188,21 @@ async function insertLayer() {
 
         await Promise.all(segmentArr);
 
-        console.log("Updated", updatedWays.length, "ways");
-        console.log("Update err:", updateErr);
+        Logger.info("Updated", updatedWays.length, "ways");
+        Logger.info("Update err:", updateErr);
       }
     } else {
       err.push(key);
     }
   }
 
-  console.log("QUERY ERRORS:", err);
+  Logger.info("QUERY ERRORS:", err);
 
   Script.endPool();
   return "Done";
 }
 
-async function test(bound) {
+async function fetchLayer(bound) {
   const boundMinLat = bound.minLat;
   const boundMaxLat = bound.maxLat;
   const boundMinLon = bound.minLon;
@@ -280,55 +265,11 @@ async function test(bound) {
   }
 }
 
-async function findWayNotExist() {
-  const layerJson = await Script.getLayerInfo();
-  const rels = await Database.findMany(relationModel, {});
-  const relId = [];
-  for (const rel of rels) {
-    relId.push(rel.id);
-  }
-  const ways = await Database.findMany(wayModel, {});
-  const waysId = [];
-  ways.forEach((w) => {
-    waysId.push(w);
-  });
-  for (const l of layerJson) {
-    const res = await Script.query(l);
-    if (Object.keys(res).length > 0) {
-      const key = Object.keys(res)[0];
-      if (key !== "text-poly-low-zoom") continue;
-      const wayIdArray = new Set();
-      res[key].forEach((e) => {
-        if (e.name === "Hồ Bán Nguyệt") console.log(e);
-        wayIdArray.add(e.osm_id);
-      });
-
-      console.log(wayIdArray.size, key);
-      // waysId: from mongo vs wayIdArray from postgis
-      const notExist = [];
-      wayIdArray.forEach((e) => {
-        if (!waysId.includes(e)) {
-          notExist.push(e);
-        }
-      });
-
-      notExist.forEach((n) => {
-        if (relId.includes(n)) {
-          console.log(n, "is a relation in", key);
-        }
-      });
-      console.log(notExist.length, "not exist in", key);
-    }
-  }
-
-  return "Done";
-}
-
 async function addBoundToWay() {
   await Database.updateMany(wayModelScale1000, {}, {$unset: {maxLat: 1, maxLon: 1, minLat: 1, minLon: 1}});
-  console.log("Cleared bbox");
+  Logger.info("Cleared bbox");
   const ways = await Database.findMany(wayModelScale1000, {});
-  console.log("Found", ways.length, "ways");
+  Logger.info("Found", ways.length, "ways");
   const nodes = (await Database.findMany(nodeModel, {})).reduce((acc, cur) => {
     acc[cur.id] = {
       lat: cur.lat,
@@ -336,7 +277,7 @@ async function addBoundToWay() {
     };
     return acc;
   }, {});
-  console.log("Found", Object.keys(nodes).length, "nodes");
+  Logger.info("Found", Object.keys(nodes).length, "nodes");
 
   const limit = pLimit(1e5);
   let numNodesNotInDb = 0;
@@ -345,7 +286,6 @@ async function addBoundToWay() {
     let minLat = 2000;
     let maxLon = 0;
     let minLon = 2000;
-    //console.log(nodesInWay.length);
     w.refs.forEach((r) => {
       const n = nodes[r.toString()];
       if (n === undefined) {
@@ -365,12 +305,11 @@ async function addBoundToWay() {
         minLon: minLon,
       }
     }
-    //console.log("------inserting", update, "to WayOSM with id =", w.id)
     return limit(() => Database.updateOne(wayModelScale1000, { id: w.id }, update));
   });
 
-  console.log("Found", numNodesNotInDb, "nodes not in db");
-  console.log("Updating", awaitAll.length, "ways");
+  Logger.info("Found", numNodesNotInDb, "nodes not in db");
+  Logger.info("Updating", awaitAll.length, "ways");
 
   const segment = 100000;
   const segmentArr = [];
@@ -389,7 +328,6 @@ module.exports = {
   getWayAndNodeFromBound,
   getWays,
   insertLayer,
-  test,
-  findWayNotExist,
+  fetchLayer,
   addBoundToWay,
 };

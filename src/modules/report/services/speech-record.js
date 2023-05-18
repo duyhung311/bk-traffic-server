@@ -66,14 +66,12 @@ async function getEnhancedSpeechRecord(url, speechRecordId) {
     .then(() => sleep(2000))
     .then(() => {
       Logger.info('[Enhance Audio Service] Enhancing speech record successfully');
-
       const fileContents = fs.readFileSync(filename);
       fsExtra.removeSync(filename);
       return arrayBufferToBuffer(fileContents.buffer);
     })
     .catch((error) => {
       if (retry >= MAX_RETRY) throw error;
-      //Logger.warn('[Enhance Audio Service] Retry enhancing speech record %s', speechRecordId);
       Logger.warn('[Enhance Audio Service] Retry enhancing speech record at %s', url);
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -89,7 +87,6 @@ async function getEnhancedSpeechRecord(url, speechRecordId) {
 async function downloadEnhancedAudio(downloadUrl, speechRecordId) {
   let retry = 0;
   const filename = `tmp/${speechRecordId}.wav`;
-
   const getEnhanceAudio = async () => axios.get(downloadUrl, {responseType: 'stream'})
   .then((response) => response.data.pipe(fs.createWriteStream(filename)))
     .then(() => sleep(2000))

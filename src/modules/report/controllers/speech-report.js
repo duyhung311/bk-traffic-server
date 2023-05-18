@@ -9,12 +9,6 @@ const { ObjectId } = require('../../../core/database');
 const Logger = require('../../../core/logger');
 const { default: axios } = require('axios');
 const fs = require('fs');
-const { ExceptionHandler } = require('winston');
-const { MAX_CAPACITY } = require('../../../state');
-const { validate } = require('joi/lib/types/lazy');
-
-//const wav = require('node-wav');
-
 const MAX_RETRY = 5;
 async function postSpeechReport(req, res, next) {
   try {
@@ -23,47 +17,15 @@ async function postSpeechReport(req, res, next) {
     const segments = JSON.parse(JSON.stringify(data)).segments;
     const speechRecordId = data.speech_record_id;
     const dolbyUrl = `dlb://enhanced${speechRecordId}`;
+    
     let {isError, reportData}= await validateUserRequest(req, segments, res)
-    if (!isError) return;
-    // Validation  |  separate to new function validateUserRequest()
-    // if (segments.length > 5) {
-    //   errors.segments = Reason.invalid;
-    // }
-    // if (!_.isEmpty(errors)) {
-    //   const response = new CodeError(ErrorType.badRequest);
-    //   for (const [key, val] of Object.entries(errors)) {
-    //     response.addError(key, val);
-    //   }
-    //   response.send(res);
-    //   return;
-    // }
-    // let { user } = req;
-    // if (!user) {
-    //   user = await UserModel.Service.User.findOne({
-    //     username: state.admin.username,
-    //   });
-    // }
-    // const currentPeriod = await periodModule.Service.getCurrentPeriod();
-    // const reportData = {
-    //   user: user._id,
-    //   segments: [...new Set(segments.flat())],
-    //   period_id: currentPeriod._id,
-    //   source: 'user',
-    // };
-    // const { error } = Service.SpeechReport.validate(reportData);
-    // if (error) {
-    //   throw error;
-    // }
-
-
-    // // Finish validate user speech report
-    // ResponseFactory.success().send(res);
-
+    if (!isError) {
+      return;
+    };
     // Enhance noise cancelling
     let enhancedBuffer = null;
     try {
       enhancedBuffer = await Service.SpeechRecord.getEnhancedSpeechRecord(dolbyUrl, speechRecordId);
-      console.log('enhancedBuffer.length: ', enhancedBuffer==null);
     } catch (e) {
       Logger.error('[Enhance Audio]', e);
     }
@@ -161,19 +123,15 @@ async function processSpeechReportMobile(req, res, next) {
     Logger.info(data.speech_record_id)
     const speech_record_id = String(data.speech_record_id).substring(1, data.speech_record_id.length-1);
     var dataFile = data.file;
-    Logger.info(segments);
-    let {isError, reportData}= await validateUserRequest(req, segments, res);
-    console.log(isError);
-    if (!isError) return;
-    console.log('reportData2', reportData);
+    let { isError, reportData } = await validateUserRequest(req, segments, res);
+    if (!isError) 
+      return;
 
-    Logger.info('Validated');
     let decodedAudioFile = Buffer.from(dataFile, 'base64');
     fs.writeFileSync('./audio.wav', decodedAudioFile);
 
     const audioFile = fs.readFileSync('./audio.wav');
-    console.log("length: ", audioFile.length);
-    Logger.info(`dlb://${speech_record_id}`);
+    Logger.info(`Bucket Url: dlb://${speech_record_id}`);
     // create input bucket
     const inputBucketUrl = await axios
       .post(
@@ -186,6 +144,7 @@ async function processSpeechReportMobile(req, res, next) {
                     'content-type': 'application/json'}
         }
       );
+    
     if (inputBucketUrl !== null) {
       formData.append('file', audioFile);
       const putAudioStatus = await axios
@@ -194,7 +153,7 @@ async function processSpeechReportMobile(req, res, next) {
           audioFile,
           {
             headers: {
-              "Content-Type": "audio/wave",
+              "Content-Type" : "audio/wave",
             }
           }
         )
@@ -203,6 +162,7 @@ async function processSpeechReportMobile(req, res, next) {
         }, (error) => {
           console.log(error);
         })
+
       if (putAudioStatus === 200) {
         const inputUrl = `dlb://${speech_record_id}`
         const outputUrl = `dlb://enhanced${speech_record_id}`
@@ -223,19 +183,15 @@ async function processSpeechReportMobile(req, res, next) {
         }, (error) => {
             console.log(error);
         })
-        console.log('success', jobId);
+
         if (jobId !== null) {
-          console.log("do here");
           let statusEnhanced =  await getStatusEnhanced(jobId);
           Logger.info(statusEnhanced);
           if (statusEnhanced === 'Success') {
             // downloading enhanced audio
-            console.log('Success status')
+            Logger.info('Success status');
             let downloadUrl = await getDownloadUrl(speech_record_id, apiKey);
-            console.log("get download url success")
             let enhancedBuffer = await Service.SpeechRecord.downloadEnhancedAudio(downloadUrl, speech_record_id);
-            Logger.info("Success enhancing, pls start saving it do db");
-            console.log('repportData: ', reportData);  
             reportData.speech_record = speech_record_id;
             Service.SpeechRecord.insertOne({
               _id: speech_record_id,
@@ -245,19 +201,15 @@ async function processSpeechReportMobile(req, res, next) {
               encoding: '16bit',
               dataEnhanced: enhancedBuffer,
             });
-            Logger.info("Inserted SpeechRecord to MongoDB")
-            
-            Logger.info("reportData: ", reportData);
-            // Insert speech report
+            Logger.info("Inserted SpeechRecord to DB");
             await Service.SpeechReport.insertOne(reportData);
-            Logger.info("Inserted SpeechReport to MongoDB")
+            Logger.info("Inserted SpeechReport to DB");
           }
         }
       }
     }
   } catch (error) {
-    console.log("error4: ", error);
-    console.log("FAILED TO ERROR")
+    Logger.info("Error ", error);
   }
 }
 
@@ -289,7 +241,6 @@ async function validateUserRequest(req, segments, res) {
     user = await UserModel.Service.User.findOne({
       username: state.admin.username,
     });
-    Logger.error('Cannot find user');
   }
 
   const currentPeriod = await periodModule.Service.getCurrentPeriod();
@@ -310,7 +261,6 @@ async function validateUserRequest(req, segments, res) {
   // Finish validate user speech report
   ResponseFactory.success().send(res);
   Logger.info('Validate no errors');
-  console.log('reportData1', reportData);
   return {'isError' : _.isEmpty(errors), 'reportData' : reportData};
 }
 
