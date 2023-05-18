@@ -1,7 +1,7 @@
 const Database = require("../../../core/database");
 const Model = require("../models");
 const nodeModel = Model.NodeOsm.Name;
-const wayModelScale1000 = Model.WayOsmScale1000.Name;
+const wayModel = Model.WayOsm.Name;
 
 async function fetchLayer(bound) {
   const boundMinLat = bound.minLat;
@@ -37,7 +37,7 @@ async function fetchLayer(bound) {
     ],
   };
 
-  const ways = (await Database.findMany(wayModelScale1000, wayQuery)).map((w) => {
+  const ways = (await Database.findMany(wayModel, wayQuery)).map((w) => {
     return {
       id: w.id,
       refs: w.refs,

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const modelNames = require('../../../../config/model-names');
-const modelName = modelNames.wayOsmScale1000;
+const modelName = modelNames.wayOsm;
 const {Schema} = mongoose;
 //scale 20000
 const waySchema = new Schema({

@@ -8,8 +8,6 @@ const {
 const { ResponseFactory } = require('../../../core/response');
 const state = require('../../../state');
 const Service = require('../services');
-const Util = require('../util/read-pbf');
-const Logger = require('../../../core/logger');
 
 async function findNear(req, res, next) {
   try {
@@ -108,7 +106,6 @@ async function direct(req, res, next) {
         return a.time - b.time;
       }
     });
-    console.log("roads: ", roads);
     ResponseFactory.success(roads).send(res);
   } catch (error) {
     next(error);
