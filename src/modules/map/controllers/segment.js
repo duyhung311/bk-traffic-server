@@ -224,53 +224,22 @@ async function readPbf(req, res, next) {
   ResponseFactory.success(message).send(res);
 }
 
-async function getNewWayFromBound(req, res, next) {
-  try {
-    const allowedField = ['newBound', 'oldBound'];
-    const data = _.pick(req.body, allowedField);
-    let newBound = await Service.OsmService.getWayAndNodeFromBound(data.newBound);
-    let nodesFromNewBound = newBound.nodes;
-    if (!Util.isSameBoundingBox(data.newBound, data.oldBound)) {
-        let oldBound = await Service.OsmService.getWayAndNodeFromBound(data.oldBound);
-        let newWayId = [];
-        newBound.newWaySet.forEach((e) => {
-          if (!oldBound.newWaySet.has(e)) {
-            newWayId.push(e);
-          }
-        })
-        let wayFromNewBound = await Service.OsmService.getWays(newWayId);
-        return ResponseFactory.success({ nodesFromNewBound, wayFromNewBound, isChanging: true}).send(res);
-    }
-    return ResponseFactory.success({nodesFromNewBound, wayFromNewBound:[], isChanging: false}).send(res);
-  }
-  catch (err) {
-    console.log(err);
-    return ResponseFactory.error(err).send(res);
-  }
-}
-
 async function insertLayers(req, res) {
   let resultStatus = await Service.OsmService.insertLayer();
   return ResponseFactory.success(resultStatus).send(res);
 }
 
-async function test(req, res) {
+async function fetchLayer(req, res) {
   const data = _.pick(req.body, 'bound');
-  let response = await Service.OsmService.test(data.bound);
+  let response = await Service.OsmService.fetchLayer(data.bound);
   return ResponseFactory.success(response).send(res);
-}
-
-
-async function test1(req, res) {
-  let resultStatus = await Service.OsmService.findWayNotExist();
-  return ResponseFactory.success(resultStatus).send(res); 
 }
 
 async function addBoundToWay(req, res) {
   const resultStatus = await Service.OsmService.addBoundToWay();
   return ResponseFactory.success(resultStatus).send(res); 
-
 }
+
 module.exports = {
   user: {
     findNear,
@@ -279,10 +248,8 @@ module.exports = {
     dynamicRouting,
     getCurrentCapacity,
     readPbf,
-    getNewWayFromBound,
     insertLayers,
-    test,
-    test1,
+    fetchLayer,
     addBoundToWay,
   },
   admin: {},

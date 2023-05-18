@@ -30,6 +30,7 @@ module.exports = {
   speechReportScript: 'SpeechReportScripts',
   nodeOsm: 'NodeOSM',
   wayOsm: 'WayOSM',
+  wayOsmScale1000: 'WayOSMScale10000',
   nodeWayOsm: 'Node_WayOSM',
   relationOsm: 'RelationOSM',
   memberOsm: 'MemberOSM',
