@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+  <%- include('./../base/header.html');  -%>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+
+  <%- include('./../base/nav-bar.html');  -%>
+  <%- include('./../base/side-bar.html');  -%>
+
+
+
+
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Danh sách voucher
+        
+      </h1>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+      <%- include('./../component/modalVoucherPartner.html');  -%>
+      <%- include('./../component/modalPaymentVoucher.html');  -%>
+    <div class="card mb-4">
+                            <div class="card-header">
+                            <button type="button" class="btn btn-primary" onclick ="addVoucher()">Thêm</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Tên</th>
+                                                <th>Hình ảnh</th>
+                                                <th>Điểm</th>
+                                                <th>Nội dung</th>
+                                                <th>Nhà cung cấp</th>
+                                                <th>Số lượng</th>
+                                                <th>Loại</th>
+
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <% for(var i=0;i<voucher.length;i++){ %>
+                                                
+                                            <tr>
+                                                <td><%= voucher[i].name %></td>
+                                                <td><img src="<%= voucher[i].image %>" alt="" style="width:100px; height:auto;"></td>
+                                                <td><%= voucher[i].value %></td>
+                                                <td><%= voucher[i].content %></td>
+                                                <td><%= voucher[i].partner_id.name %></td>
+                                                <td><%= voucher[i].quantity %></td>
+                                                <td><%= voucher[i].type %></td>
+                                                <td>
+                                                  <button onclick ="editVoucher('<%= voucher[i]._id %>','<%= voucher[i].name %>','<%= voucher[i].value %>','<%= voucher[i].content %>','<%= voucher[i].partner_id.name %>','<%= voucher[i].quantity %>','<%= voucher[i].type %>')"><i class="fa fa-pencil-alt " aria-hidden="true" ></i></button>
+                                                  <button onclick = "removeVoucher('<%= voucher[i]._id %>','<%= voucher[i].name %>','<%= voucher[i].value %>','<%= voucher[i].content %>','<%= voucher[i].partner_id.name %>','<%= voucher[i].quantity %>','<%= voucher[i].type %>')"><i class="fa fa-trash" aria-hidden="true" ></i></button>
+                                                </td>
+                                            </tr>
+                                          <% } %>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            </div>
+
+    </section>
+    <!-- /.content -->
+  </div>
+
+  <%- include('./../base/footer.html');  -%>
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+
+<script>
+
+
+$(document).ready(function() {
+    $('#dataTable').DataTable();
+  });
+</script>
+<script>
+function removeVoucher(id,name,point,content,product,quantity,type) {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 2);
+document.getElementsByName("value")[0].setAttribute("value", point);
+    document.getElementsByName("value")[0].disabled = true;
+    document.getElementsByName("name")[0].setAttribute("value", name);
+    document.getElementsByName("name")[0].disabled = true;
+    document.getElementsByName("content")[0].setAttribute("value",content);
+    document.getElementsByName("content")[0].disabled = true;
+    document.getElementsByName("type")[0].setAttribute("value",type);
+    document.getElementsByName("type")[0].disabled = true;
+
+    document.getElementsByName("idvoucher")[0].setAttribute("value",id);
+
+    document.getElementsByName("product")[0].setAttribute("value",product);
+    document.getElementsByName("product")[0].disabled = true;
+    document.getElementsByName("quantity")[0].setAttribute("value", quantity);
+    document.getElementsByName("quantity")[0].disabled = true;
+document.getElementsByName("nametitle")[0].innerHTML = "Xóa Voucher";
+document.getElementsByName("btnedit")[0].innerHTML = "Xóa";
+$("#type").val(type).change();
+$('#modalVoucherForm').modal('show');
+
+}
+function editVoucher(id,name,point,content,product,quantity,type) {
+    document.getElementsByName("form_submitted")[0].setAttribute("value", 1);
+    document.getElementsByName("value")[0].setAttribute("value", point);
+    document.getElementsByName("value")[0].disabled = true;
+    document.getElementsByName("name")[0].setAttribute("value", name);
+    document.getElementsByName("name")[0].disabled = false;
+    document.getElementsByName("content")[0].setAttribute("value",content);
+    document.getElementsByName("content")[0].disabled = false;
+    document.getElementsByName("type")[0].setAttribute("value",type);
+    document.getElementsByName("type")[0].disabled = true;
+    document.getElementsByName("idvoucher")[0].setAttribute("value",id);
+
+    document.getElementsByName("product")[0].setAttribute("value",product);
+    document.getElementsByName("product")[0].disabled = true;
+    document.getElementsByName("quantity")[0].setAttribute("value", quantity);
+    document.getElementsByName("quantity")[0].disabled = true;
+    document.getElementsByName("nametitle")[0].innerHTML = "Cập nhật Voucher";
+    document.getElementsByName("btnedit")[0].innerHTML = "Cập nhật";
+    $("#type").val(type).change();
+    $('#modalVoucherForm').modal('show');
+    
+    }
+function addVoucher() {
+
+$('#smartwizard').smartWizard("reset")
+document.getElementById("idvoucher1").value=0
+document.getElementById("value1").value=""
+document.getElementById("name1").value=""
+document.getElementById("content1").value=""
+document.getElementById("quantity1").value=""
+
+
+$('#exampleModal').modal('show');
+        
+        }
+  $('#btnedit').on('click',function(){
+    var fd = new FormData();
+        var files = $('#file')[0].files;
+        
+        if(files.length > 0 ){
+           fd.append('file',files[0]);
+        }
+    $.ajax({
+          url: window.location.origin+"/api/file/upload",
+          contentType: false,
+          processData: false,
+          type: 'POST',
+          data: fd,
+          success: function(response){
+            
+
+                $.ajax({
+          url: window.location.origin+"/admin/voucher/handle",
+          type: 'POST',
+          data: { 
+            form_submitted: $('#form_submitted').val(),
+            value: $('#value').val(),
+            name: $('#name').val(),
+            content: $('#content').val(),
+            image: response.data,
+            idvoucher: $('#idvoucher').val(),
+            product: $('#product').val(),
+            quantity: $('#quantity').val(),
+            type: $('#type').val(),
+                },
+          contentType: 'application/x-www-form-urlencoded',
+          headers: {
+                    "Authorization": "Bearer " + getCookie('token')
+                 },
+          async: false
+            })
+              },
+            })
+
+            });
+</script>
+</body>
+</html>

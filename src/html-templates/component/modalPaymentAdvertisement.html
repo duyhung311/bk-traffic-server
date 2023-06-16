@@ -1,0 +1,335 @@
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+ <link href="https://res.cloudinary.com/dxfq3iotg/raw/upload/v1581152092/smartwizard/smart_wizard.min.css" rel="stylesheet" type="text/css">
+ <link href="https://res.cloudinary.com/dxfq3iotg/raw/upload/v1581152091/smartwizard/smart_wizard_theme_arrows.min.css" rel="stylesheet" type="text/css">
+ <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+ <script type="text/javascript"> $(document).ready(function(){
+
+
+$("#smartwizard").on("showStep", function(e, anchorObject, stepNumber, stepDirection, stepPosition) {
+              console.log(stepNumber)
+              if (stepNumber==0){
+                $(".sw-btn-next").show();
+                $(".sw-btn-prev").show();
+              }
+              else if(stepNumber == 1) {
+                $(".sw-btn-next").show();
+                $(".sw-btn-prev").show();
+              } 
+              else if(stepNumber == 2) {
+                $(".sw-btn-next").hide();
+                $(".sw-btn-prev").show();
+              }
+              else{
+                $(".sw-btn-next").hide();
+                $(".sw-btn-prev").hide();
+              }
+		
+
+          });
+
+$("#smartwizard").on("leaveStep", function(e, anchorObject, stepNumber, stepDirection) {
+  if ( $('#name1').val() == "" || $('#type1').val()=="" ||  $('#content1').val()=="" || $('#locate1').val()==""){
+    alert("Vui lòng nhập đầy đủ thông tin")
+    return false
+  }
+
+if (stepNumber==0){
+url = window.location.origin+"/admin/advertisement/handle"
+var fd = new FormData();
+        var files = $('#file1')[0].files;
+        
+        if(files.length > 0 ){
+           fd.append('file',files[0]);
+        }
+    $.ajax({
+          url: window.location.origin+"/api/file/upload",
+          contentType: false,
+          processData: false,
+          type: 'POST',
+          data: fd,
+          success: function(response){
+$.ajax({
+type:'post',
+url:url,
+xhrFields: {
+      withCredentials: true
+   },
+data:{ 
+            form_submitted: $('#form_submitted1').val(),
+            name: $('#name1').val(),
+            type: $('#type1').val(),
+            content: $('#content1').val(),
+            image:response.data,
+            locate: $('#locate1').val(),
+            range_date:$('#range_date1').val(),
+            idadvertisement: $('#idadvertisement1').val(),
+                },
+success:function(data){
+  console.log(data)
+  document.getElementById("type2").innerHTML=data.data['type']
+  document.getElementById("locate2").innerHTML=data.data['locate']
+  document.getElementById("time2").innerHTML=data.data['time']
+  document.getElementById("total2").innerHTML=data.data['total']
+  document.getElementById("idadvertisement1").value=data.data['id']
+
+  return false;
+  //  $("#smartwizard").smartWizard("next");
+},
+error: function(){
+  console.log("fail")
+  return false;
+  }
+});
+
+},
+            })
+}
+else if (stepNumber==1){
+  console.log("two")
+}
+return true;
+});
+
+
+    $('#smartwizard').smartWizard({
+    selected: 0,
+    theme: 'arrows',
+    autoAdjustHeight:true,
+    transitionEffect:'fade',
+    showStepURLhash: false,
+    anchorSettings: {
+        anchorClickable: false, // Enable/Disable anchor navigation
+        enableAllAnchors: false, // Activates all anchors clickable all times
+        markDoneStep: true, // add done css
+        enableAnchorOnDoneStep: false // Enable/Disable the done steps navigation
+    },     
+    });
+
+    $("#confirm1").click(function() {
+      $.ajax({
+type:'post',
+url:url,
+xhrFields: {
+      withCredentials: true
+   },
+data:{ 
+            form_submitted: -1,
+            idadvertisement: $('#idadvertisement1').val(),
+                },
+success:function(data){
+  document.getElementById("message").innerHTML=data.data['message']
+  return false;
+},
+error: function(){
+  return false;
+  }
+});
+  $('#smartwizard').smartWizard("next")
+
+});
+    });
+
+
+
+    $(function() {
+  $('input[name="daterange"]').daterangepicker({
+    opens: 'left'
+  }, function(start, end, label) {
+    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+  });
+});
+
+    </script>
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold" name = "nametitle">Thêm quảng cáo</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div id="smartwizard" class="sw-main sw-theme-arrows">
+            <ul class="nav nav-tabs step-anchor">
+             <li class="nav-item active"><a href="#step-1" class="nav-link">Step 1<br><small>Nhập thông tin</small></a></li>
+             <li class="nav-item"><a href="#step-2" class="nav-link">Step 2<br><small>Thanh toán</small></a></li>
+             <li class="nav-item"><a href="#step-3" class="nav-link">Step 3<br><small>Xác nhận</small></a></li>
+             <li class="nav-item"><a href="#step-4" class="nav-link">Step 4<br><small>Hoàn tất</small></a></li>
+            </ul>
+            <div class="mt-4 sw-container tab-content" style="min-height: 0px;">
+             <div id="step-1" class="tab-pane step-content" style="display: block;">
+
+                <label>Tên</label>
+                <div class="form-group pass_show"> 
+                    <input type="text" id = "name1" name="name" class="form-control" > 
+                </div> 
+                <label>Nội dung</label>
+                <div class="form-group pass_show"> 
+                        <input type="text" id = "content1" name="content" class="form-control" > 
+                    </div> 
+                    <label>Chọn ngày:</label>
+                    <div class="form-group pass_show"> 
+                    <input type="text" id = "range_date1" name="daterange" value="01/01/2018 - 01/15/2018"  class="form-control" />
+                </div> 
+
+                    <label>Loại</label>
+                    <div class="form-group pass_show"> 
+                        <select name="type1" id="type1" class="form-control">
+                        <option value="slider">slider</option>
+                        <option value="fixed">fixed</option>
+                        </select>
+                        </div>
+    
+                        <label>Vị trí</label>
+                        <div class="form-group pass_show" > 
+                            <select name="locate1" id="locate1" class="form-control">
+                            <option value="head">head</option>
+                            <option value="body">body</option>
+                            </select>
+                            </div>
+
+                <label>Chọn ảnh</label>
+                <div class="form-group pass_show"> 
+                <input type="file" id = "file1" name="file1" >
+    
+                </div> 
+    
+                <input type="hidden" id = "form_submitted1" name="form_submitted" value="0"/>
+                <input type="hidden" id = "idadvertisement1" name="idadvertisement1" value="0" />
+
+
+             </div>
+             <div id="step-2" class="tab-pane step-content">
+
+          <div class="products">
+            <h3 class="title">Thanh toán</h3>
+            <div class="item">
+              <span class="price"id = "type2">$200</span>
+              <p class="item-name">Loại</p>
+            </div>
+            <div class="item">
+              <span class="price" id = "locate2">$120</span>
+              <p class="item-name">Vị trí</p>
+            </div>
+            <div class="item">
+              <span class="price" id = "time2">$120</span>
+              <p class="item-name">Thời gian</p>
+            </div>
+            <div class="total">Tổng phí<span class="price" id = "total2">$320</span></div>
+          </div>
+
+             </div>
+
+             <div id="step-3" class="tab-pane step-content">
+              <div class="row justify-content-center">
+                  <div class="col-md-12 text-center"> <span>Vui lòng xác nhận hoàn tất</span> </div>
+                  <button id= "cancel1" class="btn btn-danger btn-sm " data-dismiss="modal" >Hủy bỏ</button><button  id= "confirm1" class="btn btn-primary btn-sm ">Xác nhận</button>
+              </div>
+          </div>
+
+             <div id="step-4" class="tab-pane step-content">
+                 <div class="row">
+                     <div class="col-md-12 text-center"> <span id = "message"></span> </div>
+                 </div>
+             </div>
+            </div>
+            </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style> body {
+    background-color: #eee
+    }
+    
+    .form-control:focus {
+    color: #495057;
+    background-color: #fff;
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0rem rgba(0, 123, 255, .25)
+    }
+    
+    .btn-secondary:focus {
+    box-shadow: 0 0 0 0rem rgba(108, 117, 125, .5)
+    }
+    
+    .close:focus {
+    box-shadow: 0 0 0 0rem rgba(108, 117, 125, .5)
+    }
+    
+    .mt-200 {
+    margin-top: 200px
+    }
+
+.title{
+	font-size: 1em;
+	border-bottom: 1px solid rgba(0,0,0,0.1);
+	margin-bottom: 0.8em;
+	font-weight: 600;
+	padding-bottom: 8px;
+}
+
+.products{
+	background-color: #f7fbff;
+    padding: 25px;
+}
+
+.products .item{
+	margin-bottom:1em;
+}
+
+.products .item-name{
+	font-weight:600;
+	font-size: 0.9em;
+}
+
+
+.products .item p{
+	margin-bottom:0.2em;
+}
+
+.products .price{
+	float: right;
+	font-weight: 600;
+	font-size: 0.9em;
+}
+
+.products .total{
+	border-top: 1px solid rgba(0, 0, 0, 0.1);
+	margin-top: 10px;
+	padding-top: 19px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+
+
+
+
+@media (min-width: 576px) {
+	 .title {
+		font-size: 1.2em; 
+	}
+
+	 .products {
+		padding: 40px; 
+  	}
+
+	.products .item-name {
+		font-size: 1em; 
+	}
+
+	 .products .price {
+    	font-size: 1em; 
+	}
+
+}
+    
+    </style>

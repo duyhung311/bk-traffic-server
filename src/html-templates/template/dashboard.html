@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+  <%- include('./../base/header.html');  -%>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+
+  <%- include('./../base/nav-bar.html');  -%>
+  <%- include('./../base/side-bar.html');  -%>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+
+          </div><!-- /.col -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <!-- Info boxes -->
+        <div class="row">
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box">
+              <span class="info-box-icon bg-info elevation-1"><i class="fas fa-money-check"></i></span>
+
+              <div class="info-box-content">
+                <span class="info-box-text">Điểm</span>
+                <span class="info-box-number">
+                  <%= point %>
+                  
+                </span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <!-- /.col -->
+
+          <!-- /.col -->
+
+          <!-- fix for small devices only -->
+          <div class="clearfix hidden-md-up"></div>
+
+          <% if(user!=-1){ %>
+          <!-- /.col -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box mb-3">
+              <span class="info-box-icon bg-success elevation-1"><i class="fas fa-road"></i></span>
+
+              <div class="info-box-content">
+                <span class="info-box-text">Quãng đường</span>
+                <span class="info-box-number"><%= distance %> km</span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box mb-3">
+              <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-users"></i></span>
+
+              <div class="info-box-content">
+                <span class="info-box-text">Thành viên</span>
+                <span class="info-box-number"><%= user %></span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <% } %>
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">Báo cáo điểm</h5>
+
+                <div class="card-tools">
+                  <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-tool dropdown-toggle" data-toggle="dropdown">
+                      <i class="fas fa-wrench"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" role="menu">
+                      <a href="#" class="dropdown-item">Action</a>
+                      <a href="#" class="dropdown-item">Another action</a>
+                      <a href="#" class="dropdown-item">Something else here</a>
+                      <a class="dropdown-divider"></a>
+                      <a href="#" class="dropdown-item">Separated link</a>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-tool" data-card-widget="remove">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-8">
+                    <p class="text-center">
+                      <strong id = "str_time">1/1/2020 - 30/7/2020 </strong>
+                    </p>
+
+                    <div class="chart">
+                      <!-- Sales Chart Canvas -->
+                      <canvas id="salesChart" height="180" style="height: 180px;"></canvas>
+                    </div>
+                    <!-- /.chart-responsive -->
+                  </div>
+                  <!-- /.col -->
+                  <div class="col-md-4">
+                    <p class="text-center">
+                      <strong>Ghi chú</strong>
+                    </p>
+
+                    <div class="progress-group">
+                      Điểm thu
+                      
+                      <div class="progress progress-sm">
+                        <div class="progress-bar"  style="width: 100%;background-color:rgba(60,141,188,0.9)"></div>
+                      </div>
+                    </div>
+                    <!-- /.progress-group -->
+
+                    <div class="progress-group">
+                      Điểm chi
+                      <div class="progress progress-sm">
+                        <div class="progress-bar " style="width: 100%;background-color:rgba(210, 214, 222, 1)"></div>
+                      </div>
+                    </div>
+
+                    <!-- /.progress-group -->
+
+
+                    <!-- /.progress-group -->
+
+                    <!-- /.progress-group -->
+                  </div>
+                  <!-- /.col -->
+                </div>
+                <!-- /.row -->
+              </div>
+              <!-- ./card-body -->
+              <div class="card-footer">
+                <div class="row">
+                  <div class="col-sm-3 col-6">
+                    <div class="description-block border-right">
+                      <h5 id = "total_in" class="description-header">$35,210.43</h5>
+                      <span class="description-text">Tổng thu</span>
+                    </div>
+                    <!-- /.description-block -->
+                  </div>
+                  <!-- /.col -->
+                  <div class="col-sm-3 col-6">
+                    <div class="description-block border-right">
+                      <h5 id = "total_out" class="description-header">$10,390.90</h5>
+                      <span class="description-text">Tổng chi</span>
+                    </div>
+                    <!-- /.description-block -->
+                  </div>
+                  <!-- /.col -->
+
+                  <!-- /.col -->
+
+                </div>
+                <!-- /.row -->
+              </div>
+              <!-- /.card-footer -->
+            </div>
+            <!-- /.card -->
+          </div>
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+
+      
+        <!-- /.row -->
+      </div><!--/. container-fluid -->
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+
+
+
+
+  <%- include('./../base/footer.html');  -%>
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+
+<script >
+  $(function () {
+'use strict'
+var list_month=[]
+var list_in=[]
+var list_out=[]
+var total_in = 0
+var total_out = 0
+<% for (var i = 0; i < list_month.length ; i++) { %>
+  list_month.push("<%= list_month[i] %>")
+  list_in.push(<%= list_in[i] %>)
+  list_out.push(<%= list_out[i] %>)
+  total_in = total_in+ <%= list_in[i] %>
+  total_out = total_out+ <%= list_out[i] %>
+    <% } %>
+    $("#total_in").html(total_in);
+    $("#total_out").html(total_out);
+    $("#str_time").html("<%= str_time %>");
+var salesChartCanvas = $('#salesChart').get(0).getContext('2d')
+var salesChartData = {
+  labels  :  list_month,
+  datasets: [
+    {
+      label               : 'Digital Goods',
+      backgroundColor     : 'rgba(60,141,188,0.9)',
+      borderColor         : 'rgba(60,141,188,0.8)',
+      pointRadius          : false,
+      pointColor          : '#3b8bba',
+      pointStrokeColor    : 'rgba(60,141,188,1)',
+      pointHighlightFill  : '#fff',
+      pointHighlightStroke: 'rgba(60,141,188,1)',
+      data                : list_in
+    },
+    {
+      label               : 'Electronics',
+      backgroundColor     : 'rgba(210, 214, 222, 1)',
+      borderColor         : 'rgba(210, 214, 222, 1)',
+      pointRadius         : false,
+      pointColor          : 'rgba(210, 214, 222, 1)',
+      pointStrokeColor    : '#c1c7d1',
+      pointHighlightFill  : '#fff',
+      pointHighlightStroke: 'rgba(220,220,220,1)',
+      data                : list_out
+    },
+  ]
+}
+
+var salesChartOptions = {
+  maintainAspectRatio : false,
+  responsive : true,
+  legend: {
+    display: false
+  },
+  scales: {
+    xAxes: [{
+      gridLines : {
+        display : false,
+      }
+    }],
+    yAxes: [{
+      gridLines : {
+        display : false,
+      }
+    }]
+  }
+}
+
+var salesChart = new Chart(salesChartCanvas, { 
+    type: 'line', 
+    data: salesChartData, 
+    options: salesChartOptions
+  }
+)
+
+
+
+})
+
+</script>
+
+</body>
+</html>

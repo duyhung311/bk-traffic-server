@@ -1,0 +1,14 @@
+node_modules/
+.env
+*.log
+.DS_Store
+public/upload
+public/avatar
+public/files/*
+package-lock.json
+docs/*.pdf
+logs/
+.idea
+.vscode
+test-direct-file
+tmp/

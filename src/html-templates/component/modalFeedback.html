@@ -1,0 +1,37 @@
+<div class="modal fade" id="modalFeedbackForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold" name = "nametitle">Phản hồi</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/admin/feedback/handle" method="Post">
+      <div class="modal-body mx-3">
+		    <label>Người gửi</label>
+		    <div class="form-group pass_show"> 
+                <input type="text"  name="name" class="form-control" > 
+            </div> 
+
+            <label>Nội dung</label>
+		    <div class="form-group pass_show"> 
+                <input type="text"  name="message" class="form-control" > 
+            </div> 
+
+            <label>Trả lời</label>
+		    <div class="form-group pass_show"> 
+                <input type="text"  name="response" class="form-control" > 
+            </div> 
+            <input type="hidden" name="form_submitted" value="0"/>
+            <input type="hidden" name="idfeedback" value="0" />
+
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+        <button type = "submit" name = "btnedit" class="btn btn-primary btn-sm">Xác nhận</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>

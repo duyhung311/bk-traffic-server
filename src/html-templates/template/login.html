@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>AdminLTE 3 | Log in</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- icheck bootstrap -->
+  <link rel="stylesheet" href="plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="dist/css/adminlte.min.css">
+  <!-- Google Font: Source Sans Pro -->
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+</head>
+<body class="hold-transition login-page">
+<div class="login-box">
+  <div class="login-logo">
+    <a href="index2.html"><b>UTRAFFIC</b></a>
+  </div>
+  <!-- /.login-logo -->
+  <div class="card">
+    <div class="card-body login-card-body">
+      <p class="login-box-msg">Đăng nhập</p>
+
+        <div class="input-group mb-3">
+          <input id="username" name = "username" type="text" class="form-control" placeholder="username">
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-envelope"></span>
+            </div>
+          </div>
+        </div>
+        <div class="input-group mb-3">
+          <input id="password" name = "password" type="password" class="form-control" placeholder="Password">
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-lock"></span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <!-- /.col -->
+          <div class="col-12 text-center">
+            <button  id = "btnlogin" class=" btn-primary  ">Đăng nhập</button>
+          </div>
+          <!-- /.col -->
+        </div>
+
+        <div id="inform" class="row" style="color:red; display: none;" >
+          <!-- /.col -->
+          <div class="col-12 text-center" >
+            <p  > Tài khoản hoặc mật khẩu không đúng </p>
+          </div>
+          <!-- /.col -->
+        </div>
+
+      <div class="social-auth-links text-center mb-3">
+
+      </div>
+      <!-- /.social-auth-links -->
+
+
+    </div>
+    <!-- /.login-card-body -->
+  </div>
+</div>
+<!-- /.login-box -->
+
+<!-- jQuery -->
+<script src="plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="dist/js/adminlte.min.js"></script>
+<script >
+$("button").click(function(){
+
+    username = $("#username").val()
+    password = $("#password").val()
+    // var fd = new FormData();    
+    // fd.append( 'username', username );
+    // fd.append( 'password', password );
+  $.post("/admin/login",
+  {
+    username: username,
+    password: password
+  },
+  function(data, status){
+    // alert("Data: " + data+"\nStatus: " + status);
+    if(data!=null){
+        if(data=='fail'){
+            document.getElementById("inform").style.display = "block"
+        }
+        else{
+            window.location = '/admin/index';
+        }
+    }
+  });
+// $.ajax({
+//         type: "POST",
+//         url: "/admin/login",
+//         data: fd,
+//         processData: false,
+//         contentType: false,
+//         dataType: "json",
+//         success: function(data, textStatus, jqXHR) {
+//             alert("Data: " + data + "\nStatus: " + textStatus);
+//         },
+//         error: function(data, textStatus, jqXHR) {
+//             alert("Data: " + data + "\nStatus: " + textStatus);
+//         },
+// });
+});
+</script>
+</body>
+</html>

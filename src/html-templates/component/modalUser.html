@@ -1,0 +1,62 @@
+<div class="modal fade" id="modalUserForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold" name = "nametitle">Thêm người dùng</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/admin/customer/handle" method="Post">
+      <div class="modal-body mx-3">
+		    <label>Họ và tên</label>
+		    <div class="form-group pass_show"> 
+                <input type="text"  name="name" class="form-control" > 
+            </div> 
+            <label>Tên đăng nhập</label>
+            <div class="form-group pass_show"> 
+                    <input type="text"  name="username" class="form-control" > 
+                </div> 
+                <label>Mật khẩu</label>
+                <div class="form-group pass_show"> 
+                        <input type="password"  name="password" class="form-control" > 
+                    </div> 
+		       <label>Điểm</label>
+            <div class="form-group pass_show"> 
+                <input type="number" name="point" class="form-control" > 
+            </div> 
+            <label>Trạng thái</label>
+            <div class="form-group pass_show"> 
+            <select name="status" id="status" class="form-control">
+            <option value="active">active</option>
+            <option value="inactive">inactive</option>
+            </select>
+            </div>
+            <label>Số điện thoại</label>
+		    <div class="form-group pass_show"> 
+                <input type="number"  name="phone" class="form-control" > 
+            </div> 
+		       <label>Email</label>
+            <div class="form-group pass_show"> 
+                <input type="email" name="email" class="form-control" > 
+            </div> 
+            <label>Chọn Avatar</label>
+            <div class="form-group pass_show"> 
+            <input type="file" name="fileToUpload" id="fileToUpload" >
+
+            </div> 
+            <input type="hidden" name="form_submitted" value="0"/>
+            <input type="hidden" name="iduser" value="0" />
+
+
+		
+
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+        <button type = "submit" name = "btnedit" class="btn btn-primary btn-sm">Xác nhận</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>

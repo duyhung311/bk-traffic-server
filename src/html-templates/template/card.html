@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+  <%- include('./../base/header.html');  -%>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+
+  <%- include('./../base/nav-bar.html');  -%>
+  <%- include('./../base/side-bar.html');  -%>
+
+
+
+
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Danh sách thẻ cào
+        
+      </h1>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+      <%- include('./../component/modalCard.html');  -%>
+    <div class="card mb-4">
+                            <div class="card-header">
+                            <button type="button" class="btn btn-primary" onclick ="addCard()">Thêm</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Mã thẻ</th>
+                                                <th>Số serial</th>
+                                                <th>Nhà mạng</th>
+                                                <th>Trạng thái</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <% for(var i=0;i<card.length;i++){ %>
+                                                
+                                            <tr>
+                                                <td><%= card[i].code %></td>
+                                                <td><%= card[i].serial %></td>
+                                                <td><%= card[i].type %></td>
+                                                <td><%= card[i].status %></td>
+                                                <td>
+                                                  <button onclick ="editCard('<%= card[i]._id %>','<%= card[i].code %>','<%= card[i].serial %>','<%= card[i].status %>','<%= card[i].type %>')"><i class="fa fa-pencil-alt " aria-hidden="true" ></i></button>
+                                                  <button onclick = "removeCard('<%= card[i]._id %>','<%= card[i].code %>','<%= card[i].serial %>','<%= card[i].status %>','<%= card[i].type %>')"><i class="fa fa-trash" aria-hidden="true" ></i></button>
+                                                </td>
+                                            </tr>
+                                          <% } %>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            </div>
+
+    </section>
+    <!-- /.content -->
+  </div>
+
+  <%- include('./../base/footer.html');  -%>
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+
+<script>
+
+
+$(document).ready(function() {
+    $('#dataTable').DataTable();
+  });
+</script>
+<script>
+function removeCard(id,code,serial,status,type) {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 2);
+document.getElementsByName("code")[0].setAttribute("value", code);
+    document.getElementsByName("code")[0].disabled = true;
+    document.getElementsByName("serial")[0].setAttribute("value", serial);
+    document.getElementsByName("serial")[0].disabled = true;
+    document.getElementsByName("status")[0].setAttribute("value",status);
+    document.getElementsByName("status")[0].disabled = true;
+
+    document.getElementsByName("idcard")[0].setAttribute("value",id);
+
+    document.getElementsByName("type")[0].setAttribute("value",type);
+    document.getElementsByName("type")[0].disabled = true;
+document.getElementsByName("nametitle")[0].innerHTML = "Xóa thẻ cào";
+document.getElementsByName("btnedit")[0].innerHTML = "Xóa";
+$('#modalCardForm').modal('show');
+
+}
+function editCard(id,code,serial,status,type) {
+    document.getElementsByName("form_submitted")[0].setAttribute("value", 1);
+    document.getElementsByName("code")[0].setAttribute("value", code);
+    document.getElementsByName("code")[0].disabled = false;
+    document.getElementsByName("serial")[0].setAttribute("value", serial);
+    document.getElementsByName("serial")[0].disabled = false;
+    document.getElementsByName("status")[0].setAttribute("value",status);
+    document.getElementsByName("status")[0].disabled = false;
+
+    document.getElementsByName("idcard")[0].setAttribute("value",id);
+
+    document.getElementsByName("type")[0].setAttribute("value",type);
+    document.getElementsByName("type")[0].disabled = false;
+
+    document.getElementsByName("nametitle")[0].innerHTML = "Cập nhật thẻ cào";
+    document.getElementsByName("btnedit")[0].innerHTML = "Cập nhật";
+    $("#type").val(type).change();
+    $("#status").val(status).change();
+    $('#modalCardForm').modal('show');
+    
+    }
+function addCard() {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 0);
+document.getElementsByName("code")[0].setAttribute("value", '');
+document.getElementsByName("code")[0].disabled = false;
+document.getElementsByName("serial")[0].setAttribute("value", '');
+document.getElementsByName("serial")[0].disabled = false;
+document.getElementsByName("type")[0].setAttribute("value", "");
+document.getElementsByName("type")[0].disabled = false;
+
+document.getElementsByName("idcard")[0].setAttribute("value",'');
+
+document.getElementsByName("status")[0].setAttribute("value", '');
+document.getElementsByName("status")[0].disabled = false;
+
+document.getElementsByName("nametitle")[0].innerHTML = "Thêm thẻ cào";
+document.getElementsByName("btnedit")[0].innerHTML = "Xác nhận";
+$('#modalCardForm').modal('show');
+        
+        }
+
+</script>
+</body>
+</html>

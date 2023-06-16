@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+  <%- include('./../base/header.html');  -%>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+
+  <%- include('./../base/nav-bar.html');  -%>
+  <%- include('./../base/side-bar.html');  -%>
+
+
+
+
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Danh sách quảng cáo
+        
+      </h1>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+      <%- include('./../component/modalAdvertisement.html');  -%>
+    <div class="card mb-4">
+                            <div class="card-header">
+                            <button type="button" class="btn btn-primary" onclick ="addAdvertisement()">Thêm</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Tên</th>
+                                                <th>Hình ảnh</th>
+                                                <th>Nội dung</th>
+                                                <th>Nhà cung cấp</th>
+                                                <th>Loại</th>
+                                                <th>Trạng thái</th>
+                                                <th>Vị trí</th>
+
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <% for(var i=0;i<advertisement.length;i++){ %>
+                                                
+                                            <tr>
+                                                <td><%= advertisement[i].name %></td>
+                                                <td><img src="<%= advertisement[i].image %>" alt="" style="width:100px; height:auto;"></td>
+                                                <td><%= advertisement[i].content %></td>
+                                                <td><%= advertisement[i].partner_id.name %></td>
+                                                <td><%= advertisement[i].type %></td>
+                                                <td><%= advertisement[i].state %></td>
+                                                <td><%= advertisement[i].locate %></td>
+                                                <td>
+                                                  <button onclick ="editAdvertisement('<%= advertisement[i]._id %>','<%= advertisement[i].name %>','<%= advertisement[i].content %>','<%= advertisement[i].type %>','<%= advertisement[i].state %>','<%= advertisement[i].partner_id.name %>','<%= advertisement[i].partner_id._id %>','<%= advertisement[i].locate %>')"><i class="fa fa-pencil-alt " aria-hidden="true" ></i></button>
+                                                  <button onclick ="removeAdvertisement('<%= advertisement[i]._id %>','<%= advertisement[i].name %>','<%= advertisement[i].content %>','<%= advertisement[i].type %>','<%= advertisement[i].state %>','<%= advertisement[i].partner_id.name %>','<%= advertisement[i].partner_id._id %>','<%= advertisement[i].locate %>')"><i class="fa fa-trash" aria-hidden="true" ></i></button>
+                                                </td>
+                                            </tr>
+                                          <% } %>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            </div>
+
+    </section>
+    <!-- /.content -->
+  </div>
+
+  <%- include('./../base/footer.html');  -%>
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+
+<script>
+$(document).ready(function() {
+    $('#dataTable').DataTable();
+    $(function() {
+  $('input[name="daterange"]').daterangepicker({
+    opens: 'left'
+  }, function(start, end, label) {
+    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+  });
+});
+  });
+</script>
+<script>
+function removeAdvertisement(id,name,content,type,state,product,partner_id,locate) {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 2);
+document.getElementsByName("state")[0].setAttribute("value", state);
+    document.getElementsByName("state")[0].disabled = true;
+    document.getElementsByName("name")[0].setAttribute("value", name);
+    document.getElementsByName("name")[0].disabled = true;
+    document.getElementsByName("content")[0].setAttribute("value",content);
+    document.getElementsByName("content")[0].disabled = true;
+
+    document.getElementsByName("idadvertisement")[0].setAttribute("value",id);
+
+
+    document.getElementsByName("type")[0].setAttribute("value", type);
+    document.getElementsByName("type")[0].disabled = true;
+    document.getElementsByName("locate")[0].disabled = true;
+    document.getElementsByName("daterange")[0].disabled = true;
+    document.getElementsByName("partner_id")[0].setAttribute("value",product);
+    document.getElementsByName("partner_id")[0].disabled = true;
+    $("#partner_id").val(partner_id).change();
+    $("#locate").val(locate).change();
+    $("#type").val(type).change();
+    $("#state").val(state).change();
+document.getElementsByName("nametitle")[0].innerHTML = "Xóa";
+document.getElementsByName("btnedit")[0].innerHTML = "Xóa";
+$('#modalAdvertisementForm').modal('show');
+
+}
+function editAdvertisement(id,name,content,type,state,product,partner_id,locate) {
+
+    document.getElementsByName("form_submitted")[0].setAttribute("value", 1);
+    document.getElementsByName("state")[0].setAttribute("value", state);
+    document.getElementsByName("state")[0].disabled = false;
+    document.getElementsByName("name")[0].setAttribute("value", name);
+    document.getElementsByName("name")[0].disabled = false;
+    document.getElementsByName("content")[0].setAttribute("value",content);
+    document.getElementsByName("content")[0].disabled = false;
+
+    document.getElementsByName("idadvertisement")[0].setAttribute("value",id);
+
+    document.getElementsByName("partner_id")[0].setAttribute("value",product);
+    document.getElementsByName("partner_id")[0].disabled = false;
+    document.getElementsByName("type")[0].setAttribute("value", type);
+    document.getElementsByName("type")[0].disabled = false;
+    document.getElementsByName("daterange")[0].disabled = false;
+    document.getElementsByName("locate")[0].disabled = false;
+    document.getElementsByName("nametitle")[0].innerHTML = "Cập nhật";
+    document.getElementsByName("btnedit")[0].innerHTML = "Cập nhật";
+    $("#partner_id").val(partner_id).change();
+    $("#locate").val(locate).change();
+    $("#type").val(type).change();
+    $("#state").val(state).change();
+    $('#modalAdvertisementForm').modal('show');
+    
+    }
+function addAdvertisement() {
+
+document.getElementsByName("form_submitted")[0].setAttribute("value", 0);
+document.getElementsByName("state")[0].setAttribute("value", '1');
+document.getElementsByName("state")[0].disabled = false;
+document.getElementsByName("name")[0].setAttribute("value", '');
+document.getElementsByName("name")[0].disabled = false;
+document.getElementsByName("content")[0].setAttribute("value", "");
+document.getElementsByName("content")[0].disabled = false;
+
+document.getElementsByName("idadvertisement")[0].setAttribute("value",0);
+
+document.getElementsByName("partner_id")[0].setAttribute("value", '');
+document.getElementsByName("partner_id")[0].disabled = false;
+document.getElementsByName("type")[0].setAttribute("value", 'slider');
+document.getElementsByName("type")[0].disabled = false;
+document.getElementsByName("daterange")[0].disabled = false;
+document.getElementsByName("locate")[0].disabled = false;
+document.getElementsByName("nametitle")[0].innerHTML = "Thêm ";
+document.getElementsByName("btnedit")[0].innerHTML = "Xác nhận";
+$('#modalAdvertisementForm').modal('show');
+        
+        }
+
+
+        $('#btnedit').on('click',function(){
+    var fd = new FormData();
+        var files = $('#file')[0].files;
+        
+        if(files.length > 0 ){
+           fd.append('file',files[0]);
+        }
+    $.ajax({
+          url: window.location.origin+"/api/file/upload",
+          contentType: false,
+          processData: false,
+          type: 'POST',
+          data: fd,
+          success: function(response){
+            
+
+                $.ajax({
+          url: window.location.origin+"/admin/advertisement/handle",
+          type: 'POST',
+          data: { 
+            form_submitted: $('#form_submitted').val(),
+            state: $('#state').val(),
+            name: $('#name').val(),
+            content: $('#content').val(),
+            image: response.data,
+            idadvertisement: $('#idadvertisement').val(),
+            partner_id: $('#partner_id').val(),
+            range_date: $('#range_date').val(),
+            type: $('#type').val(),
+            locate: $('#locate').val(),
+                },
+          contentType: 'application/x-www-form-urlencoded',
+          headers: {
+                    "Authorization": "Bearer " + getCookie('token')
+                 },
+          async: false,
+          success: function(response){
+            window.location.reload()
+          }
+            })
+              },
+            })
+
+            });
+  
+</script>
+</body>
+</html>
